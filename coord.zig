@@ -1,6 +1,3 @@
-const expect = @import("std").testing.expect;
-const expectEqual = @import("std").testing.expectEqual;
-
 const Coord = struct {
     x: i8,
     y: i8,
@@ -20,6 +17,9 @@ const Coord = struct {
         return Coord{ .x = @mod(index, 8), .y = @divTrunc(index, 8) };
     }
 };
+
+const expect = @import("std").testing.expect;
+const expectEqual = @import("std").testing.expectEqual;
 
 test "Create Coord" {
     const coord = Coord{ .x = 0, .y = 0 };
