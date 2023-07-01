@@ -13,6 +13,10 @@ fn stepIsLegal(position: Coord, offSet: Coord) bool {
     if (position.y == 0 and offSet.y == -1) {
         return false;
     }
+    // ... and lower edge.
+    if (position.y == 7 and offSet.y == 1) {
+        return false;
+    }
 
     // The step is not illegal, return true.
     return true;
@@ -24,4 +28,5 @@ test "stepIsLegal" {
     try expect(!stepIsLegal(Coord{ .x = 0, .y = 0 }, Coord{ .x = -1, .y = 0 }));
     try expect(!stepIsLegal(Coord{ .x = 7, .y = 0 }, Coord{ .x = 1, .y = 0 }));
     try expect(!stepIsLegal(Coord{ .x = 0, .y = 0 }, Coord{ .x = 0, .y = -1 }));
+    try expect(!stepIsLegal(Coord{ .x = 0, .y = 7 }, Coord{ .x = 0, .y = 1 }));
 }
