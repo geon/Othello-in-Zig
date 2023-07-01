@@ -1,11 +1,10 @@
 const Coord = @import("coord.zig").Coord;
 
 fn stepIsLegal(position: Coord, offSet: Coord) bool {
-    // Take care of left
+    // Take care of left, ...
     if (position.x == 0 and offSet.x == -1) {
         return false;
     }
-
     // ... right, ...
     if (position.x == 7 and offSet.x == 1) {
         return false;
