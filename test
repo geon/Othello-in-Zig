@@ -1,1 +1,1 @@
-../../../zig/zig test coord.zig
+../../../zig/zig test othello.zig

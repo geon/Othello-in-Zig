@@ -1,4 +1,4 @@
-const Coord = struct {
+pub const Coord = struct {
     x: i8,
     y: i8,
     fn equal(a: Coord, b: Coord) bool {
