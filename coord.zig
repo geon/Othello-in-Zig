@@ -16,6 +16,9 @@ const Coord = struct {
     fn toIndex(coord: Coord) i8 {
         return coord.x + coord.y * 8;
     }
+    fn fromIndex(index: i8) Coord {
+        return Coord{ .x = @mod(index, 8), .y = @divTrunc(index, 8) };
+    }
 };
 
 test "Create Coord" {
@@ -46,4 +49,9 @@ test "Subtract Coord" {
 test "Coord to index" {
     try expectEqual(@as(i8, 0), Coord.toIndex(Coord{ .x = 0, .y = 0 }));
     try expectEqual(@as(i8, 17), Coord.toIndex(Coord{ .x = 1, .y = 2 }));
+}
+
+test "Coord from index" {
+    try expectEqual(Coord.fromIndex(0), Coord{ .x = 0, .y = 0 });
+    try expectEqual(Coord.fromIndex(17), Coord{ .x = 1, .y = 2 });
 }
