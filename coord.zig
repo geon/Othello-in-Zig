@@ -6,6 +6,9 @@ const Coord = struct {
     fn coordsAreEqual(a: Coord, b: Coord) bool {
         return a.x == b.x and a.y == b.y;
     }
+    fn add(a: Coord, b: Coord) Coord {
+        return Coord{ .x = a.x + b.x, .y = a.y + b.y };
+    }
 };
 
 test "Create Coord" {
@@ -19,4 +22,10 @@ test "Coord equal" {
     const c = Coord{ .x = 1, .y = 1 };
     try expect(Coord.coordsAreEqual(a, b));
     try expect(!Coord.coordsAreEqual(a, c));
+}
+
+test "Add Coord" {
+    const a = Coord.add(Coord{ .x = 1, .y = 2 }, Coord{ .x = 3, .y = 4 });
+    const b = Coord{ .x = 4, .y = 6 };
+    try expect(Coord.coordsAreEqual(a, b));
 }
