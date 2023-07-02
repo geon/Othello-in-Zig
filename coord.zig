@@ -1,19 +1,19 @@
 pub const Coord = struct {
     x: i8,
     y: i8,
-    fn equal(a: Coord, b: Coord) bool {
+    pub fn equal(a: Coord, b: Coord) bool {
         return a.x == b.x and a.y == b.y;
     }
-    fn add(a: Coord, b: Coord) Coord {
+    pub fn add(a: Coord, b: Coord) Coord {
         return Coord{ .x = a.x + b.x, .y = a.y + b.y };
     }
-    fn sub(a: Coord, b: Coord) Coord {
+    pub fn sub(a: Coord, b: Coord) Coord {
         return Coord{ .x = a.x - b.x, .y = a.y - b.y };
     }
-    fn toIndex(coord: Coord) i8 {
+    pub fn toIndex(coord: Coord) i8 {
         return coord.x + coord.y * 8;
     }
-    fn fromIndex(index: i8) Coord {
+    pub fn fromIndex(index: i8) Coord {
         return Coord{ .x = @mod(index, 8), .y = @divTrunc(index, 8) };
     }
 };
