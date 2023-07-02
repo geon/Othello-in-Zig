@@ -44,6 +44,25 @@ const Board = struct {
     fn iterateRow(board: Board, position: Coord, offSet: Coord) RowIterator {
         return RowIterator{ .board = &board, .position = position, .offSet = offSet };
     }
+
+    fn rowExists(board: Board, position: Coord, offSet: Coord, player: Player) bool {
+        var iterator = board.iterateRow(position, offSet);
+        var stepsMoved: i8 = 0;
+
+        while (iterator.next()) |cell| {
+            // In rows, the pices belongs to opponent (-player).
+            if (cell != -player) {
+                if (stepsMoved > 0 and cell == player) {
+                    // We have found a comlete row.
+                    return true;
+                }
+            }
+
+            stepsMoved += 1;
+        }
+
+        return false;
+    }
 };
 
 const expect = @import("std").testing.expect;
@@ -78,4 +97,19 @@ test "iterateRow" {
     try expectEqual(@as(?i8, 1), b);
     try expectEqual(@as(?i8, 0), c);
     try expectEqual(@as(?i8, null), d);
+}
+
+test "rowExists" {
+    const board = Board{ .cells = [64]Cell{
+        0, 0, 0, 0,  0,  0, 0, 0,
+        0, 0, 0, 0,  0,  0, 0, 0,
+        0, 0, 0, 0,  0,  0, 0, 0,
+        0, 0, 0, -1, 1,  0, 0, 0,
+        0, 0, 0, 1,  -1, 0, 0, 0,
+        0, 0, 0, 0,  0,  0, 0, 0,
+        0, 0, 0, 0,  0,  0, 0, 0,
+        0, 0, 0, 0,  0,  0, 0, 0,
+    } };
+    try expect(!board.rowExists(Coord{ .x = 0, .y = 0 }, Coord{ .x = 1, .y = 0 }, 1));
+    try expect(board.rowExists(Coord{ .x = 2, .y = 3 }, Coord{ .x = 1, .y = 0 }, 1));
 }
