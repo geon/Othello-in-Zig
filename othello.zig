@@ -63,6 +63,39 @@ const Board = struct {
 
         return false;
     }
+
+    // Offsets for the 8 directions. upp-left, upp, upp-right, ..., down-right. The order doesn't really matter.
+    const offSets = [8]Coord{
+        Coord{ .x = -1, .y = -1 },
+        Coord{ .x = 0, .y = -1 },
+        Coord{ .x = 1, .y = -1 },
+        Coord{ .x = -1, .y = 0 },
+        Coord{ .x = 1, .y = 0 },
+        Coord{ .x = -1, .y = 1 },
+        Coord{ .x = 0, .y = 1 },
+        Coord{ .x = 1, .y = 1 },
+    };
+
+    fn moveIsLegal(
+        board: Board,
+        position: Coord,
+        player: Player,
+    ) bool {
+        // We may only put pieces in empty squares.
+        if (0 != board.cells[@as(u8, @intCast(Coord.toIndex(position)))]) {
+            return false;
+        }
+
+        // Test every direction.
+        for (offSets) |offSet| {
+            if (board.rowExists(position, offSet, player)) {
+                return true;
+            }
+        }
+
+        // If no legal move is found in either direction, this move is illegal.
+        return false;
+    }
 };
 
 const expect = @import("std").testing.expect;
@@ -112,4 +145,20 @@ test "rowExists" {
     } };
     try expect(!board.rowExists(Coord{ .x = 0, .y = 0 }, Coord{ .x = 1, .y = 0 }, 1));
     try expect(board.rowExists(Coord{ .x = 2, .y = 3 }, Coord{ .x = 1, .y = 0 }, 1));
+}
+
+test "moveIsLegal" {
+    const board = Board{ .cells = [64]Cell{
+        0, 0, 0, 0,  0,  0, 0, 0,
+        0, 0, 0, 0,  0,  0, 0, 0,
+        0, 0, 0, 0,  0,  0, 0, 0,
+        0, 0, 0, -1, 1,  0, 0, 0,
+        0, 0, 0, 1,  -1, 0, 0, 0,
+        0, 0, 0, 0,  0,  0, 0, 0,
+        0, 0, 0, 0,  0,  0, 0, 0,
+        0, 0, 0, 0,  0,  0, 0, 0,
+    } };
+    try expect(!board.moveIsLegal(Coord{ .x = 0, .y = 0 }, 1));
+    try expect(!board.moveIsLegal(Coord{ .x = 3, .y = 3 }, 1));
+    try expect(board.moveIsLegal(Coord{ .x = 2, .y = 3 }, 1));
 }
