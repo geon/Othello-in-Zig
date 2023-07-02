@@ -56,6 +56,8 @@ const Board = struct {
                     // We have found a comlete row.
                     return true;
                 }
+
+                return false;
             }
 
             stepsMoved += 1;
@@ -145,6 +147,7 @@ test "rowExists" {
     } };
     try expect(!board.rowExists(Coord{ .x = 0, .y = 0 }, Coord{ .x = 1, .y = 0 }, 1));
     try expect(board.rowExists(Coord{ .x = 2, .y = 3 }, Coord{ .x = 1, .y = 0 }, 1));
+    try expect(!board.rowExists(Coord{ .x = 0, .y = 3 }, Coord{ .x = 1, .y = 0 }, 1));
 }
 
 test "moveIsLegal" {
