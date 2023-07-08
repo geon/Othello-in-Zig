@@ -39,6 +39,8 @@ fn StaticList(comptime capacity: usize, comptime T: type) type {
             if (newLength > list.length) {
                 return Error.overshrink;
             }
+
+            list.length = newLength;
         }
     };
 }
@@ -110,4 +112,14 @@ test "Shrinking the list to a larger length is invalid." {
         StaticList(1, u8).Error.overshrink,
         list.shrink(3),
     );
+}
+
+test "Shrinking the list discards the items at the end." {
+    var list = StaticList(3, u8).init();
+    try list.push(1);
+    try list.push(2);
+    try list.push(3);
+    try list.shrink(2);
+    try expect(try list.pop() == 2);
+    try expect(try list.pop() == 1);
 }
