@@ -5,13 +5,20 @@ fn StaticList(comptime capacity: usize, comptime T: type) type {
         items: [capacity]T,
         length: usize,
 
-        const Error = error{underpop};
+        const Error = error{
+            underpop,
+            overpush,
+        };
 
         fn init() StaticList(capacity, T) {
             return StaticList(capacity, T){ .items = undefined, .length = 0 };
         }
 
-        fn push(list: *StaticList(capacity, T), _: T) void {
+        fn push(list: *StaticList(capacity, T), _: T) !void {
+            if (list.length == list.items.len) {
+                return Error.overpush;
+            }
+
             list.length += 1;
         }
 
@@ -45,15 +52,15 @@ test "initial length" {
 
 test "push increases length" {
     var list = StaticList(2, u8).init();
-    list.push(0);
+    try list.push(0);
     try expect(list.length == 1);
-    list.push(0);
+    try list.push(0);
     try expect(list.length == 2);
 }
 
 test "pop decreases length" {
     var list = StaticList(2, u8).init();
-    list.push(0);
+    try list.push(0);
     try expect(list.length == 1);
     try list.pop();
     try expect(list.length == 0);
@@ -62,4 +69,10 @@ test "pop decreases length" {
 test "pop on empty list is invalid" {
     var list = StaticList(2, u8).init();
     try expectError(StaticList(2, u8).Error.underpop, list.pop());
+}
+
+test "pushing beyond capacity is invalid" {
+    var list = StaticList(1, u8).init();
+    try list.push(0);
+    try expectError(StaticList(1, u8).Error.overpush, list.push(0));
 }
