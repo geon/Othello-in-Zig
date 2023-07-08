@@ -8,6 +8,7 @@ fn StaticList(comptime capacity: usize, comptime T: type) type {
         const Error = error{
             underpop,
             overpush,
+            overshrink,
         };
 
         fn init() StaticList(capacity, T) {
@@ -32,6 +33,12 @@ fn StaticList(comptime capacity: usize, comptime T: type) type {
             list.length -= 1;
 
             return list.items[list.length];
+        }
+
+        fn shrink(list: *StaticList(capacity, T), newLength: usize) !void {
+            if (newLength > list.length) {
+                return Error.overshrink;
+            }
         }
     };
 }
@@ -95,4 +102,12 @@ test "Popping multiple times after pushing should return the pushed values in re
     try expect(try list.pop() == 3);
     try expect(try list.pop() == 2);
     try expect(try list.pop() == 1);
+}
+
+test "Shrinking the list to a larger length is invalid." {
+    var list = StaticList(2, u8).init();
+    try expectError(
+        StaticList(1, u8).Error.overshrink,
+        list.shrink(3),
+    );
 }
