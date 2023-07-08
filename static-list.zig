@@ -1,6 +1,6 @@
 const std = @import("std");
 
-fn StaticList(comptime capacity: usize, comptime T: type) type {
+pub fn StaticList(comptime capacity: usize, comptime T: type) type {
     return struct {
         items: [capacity]T,
         length: usize,
@@ -11,18 +11,18 @@ fn StaticList(comptime capacity: usize, comptime T: type) type {
             overshrink,
         };
 
-        fn initExisting(list: *StaticList(capacity, T)) void {
+        pub fn initExisting(list: *StaticList(capacity, T)) void {
             list.items = undefined;
             list.length = 0;
         }
 
-        fn init() StaticList(capacity, T) {
+        pub fn init() StaticList(capacity, T) {
             var list: StaticList(capacity, T) = undefined;
             list.initExisting();
             return list;
         }
 
-        fn push(list: *StaticList(capacity, T), value: T) !void {
+        pub fn push(list: *StaticList(capacity, T), value: T) !void {
             if (list.length == list.items.len) {
                 return Error.overpush;
             }
@@ -32,7 +32,7 @@ fn StaticList(comptime capacity: usize, comptime T: type) type {
             list.length += 1;
         }
 
-        fn add(list: *StaticList(capacity, T)) !*T {
+        pub fn add(list: *StaticList(capacity, T)) !*T {
             if (list.length == list.items.len) {
                 return Error.overpush;
             }
@@ -42,7 +42,7 @@ fn StaticList(comptime capacity: usize, comptime T: type) type {
             return item;
         }
 
-        fn pop(list: *StaticList(capacity, T)) !T {
+        pub fn pop(list: *StaticList(capacity, T)) !T {
             if (list.length <= 0) {
                 return Error.underpop;
             }
@@ -52,7 +52,7 @@ fn StaticList(comptime capacity: usize, comptime T: type) type {
             return list.items[list.length];
         }
 
-        fn shrink(list: *StaticList(capacity, T), newLength: usize) !void {
+        pub fn shrink(list: *StaticList(capacity, T), newLength: usize) !void {
             if (newLength > list.length) {
                 return Error.overshrink;
             }
