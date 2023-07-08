@@ -10,6 +10,10 @@ fn StaticList(comptime capacity: usize, comptime T: type) type {
         fn push(list: *StaticList(capacity, T), _: T) void {
             list.length += 1;
         }
+
+        fn pop(list: *StaticList(capacity, T)) void {
+            list.length -= 1;
+        }
     };
 }
 
@@ -36,4 +40,12 @@ test "push increases length" {
     try expect(list.length == 1);
     list.push(0);
     try expect(list.length == 2);
+}
+
+test "pop decreases length" {
+    var list = StaticList(2, u8).init();
+    list.push(0);
+    try expect(list.length == 1);
+    list.pop();
+    try expect(list.length == 0);
 }
