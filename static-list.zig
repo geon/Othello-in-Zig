@@ -1,7 +1,11 @@
+const std = @import("std");
+
 fn StaticList(comptime capacity: usize, comptime T: type) type {
     return struct {
         items: [capacity]T,
         length: usize,
+
+        const Error = error{underpop};
 
         fn init() StaticList(capacity, T) {
             return StaticList(capacity, T){ .items = undefined, .length = 0 };
@@ -11,13 +15,18 @@ fn StaticList(comptime capacity: usize, comptime T: type) type {
             list.length += 1;
         }
 
-        fn pop(list: *StaticList(capacity, T)) void {
+        fn pop(list: *StaticList(capacity, T)) !void {
+            if (list.length <= 0) {
+                return Error.underpop;
+            }
+
             list.length -= 1;
         }
     };
 }
 
 const expect = @import("std").testing.expect;
+const expectError = @import("std").testing.expectError;
 
 test "Create StaticList" {
     const list = StaticList(2, u8){ .items = [_]u8{ 1, 2 }, .length = 2 };
@@ -46,6 +55,11 @@ test "pop decreases length" {
     var list = StaticList(2, u8).init();
     list.push(0);
     try expect(list.length == 1);
-    list.pop();
+    try list.pop();
     try expect(list.length == 0);
+}
+
+test "pop on empty list is invalid" {
+    var list = StaticList(2, u8).init();
+    try expectError(StaticList(2, u8).Error.underpop, list.pop());
 }
