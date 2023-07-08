@@ -19,7 +19,7 @@ fn StaticList(comptime capacity: usize, comptime T: type) type {
                 return Error.overpush;
             }
 
-            list.items[0] = value;
+            list.items[list.length] = value;
 
             list.length += 1;
         }
@@ -31,7 +31,7 @@ fn StaticList(comptime capacity: usize, comptime T: type) type {
 
             list.length -= 1;
 
-            return list.items[0];
+            return list.items[list.length];
         }
     };
 }
@@ -85,4 +85,14 @@ test "Popping after pushing should return the pushed value." {
     var list = StaticList(1, u8).init();
     try list.push(42);
     try expect(try list.pop() == 42);
+}
+
+test "Popping multiple times after pushing should return the pushed values in reverse order." {
+    var list = StaticList(3, u8).init();
+    try list.push(1);
+    try list.push(2);
+    try list.push(3);
+    try expect(try list.pop() == 3);
+    try expect(try list.pop() == 2);
+    try expect(try list.pop() == 1);
 }
