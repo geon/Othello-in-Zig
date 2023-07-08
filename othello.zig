@@ -134,6 +134,13 @@ const Board = struct {
             board.cells[@intCast(position.toIndex())] = move.player;
         }
     }
+
+    fn undoMove(board: *Board, move: Move) void {
+        board.cells[@intCast(move.position.toIndex())] = 0;
+        for (move.flips.items[0..move.flips.length]) |position| {
+            board.cells[@intCast(position.toIndex())] = -move.player;
+        }
+    }
 };
 
 const expect = @import("std").testing.expect;
@@ -211,4 +218,26 @@ test "doMove" {
 
     try expectEqual(@as(i8, 1), board.cells[@as(u8, @intCast((Coord{ .x = 2, .y = 3 }).toIndex()))]);
     try expectEqual(@as(i8, 1), board.cells[@as(u8, @intCast((Coord{ .x = 3, .y = 3 }).toIndex()))]);
+}
+
+test "undoMove" {
+    var board = Board{ .cells = [64]Cell{
+        0, 0, 0, 0,  0,  0, 0, 0,
+        0, 0, 0, 0,  0,  0, 0, 0,
+        0, 0, 0, 0,  0,  0, 0, 0,
+        0, 0, 0, -1, 1,  0, 0, 0,
+        0, 0, 0, 1,  -1, 0, 0, 0,
+        0, 0, 0, 0,  0,  0, 0, 0,
+        0, 0, 0, 0,  0,  0, 0, 0,
+        0, 0, 0, 0,  0,  0, 0, 0,
+    } };
+
+    var move: Board.Move = undefined;
+    _ = try move.init(board, Coord{ .x = 2, .y = 3 }, 1);
+
+    board.doMove(move);
+    board.undoMove(move);
+
+    try expectEqual(@as(i8, 0), board.cells[@as(u8, @intCast((Coord{ .x = 2, .y = 3 }).toIndex()))]);
+    try expectEqual(@as(i8, -1), board.cells[@as(u8, @intCast((Coord{ .x = 3, .y = 3 }).toIndex()))]);
 }
