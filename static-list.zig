@@ -6,6 +6,10 @@ fn StaticList(comptime capacity: usize, comptime T: type) type {
         fn init() StaticList(capacity, T) {
             return StaticList(capacity, T){ .items = undefined, .length = 0 };
         }
+
+        fn push(list: *StaticList(capacity, T), _: T) void {
+            list.length += 1;
+        }
     };
 }
 
@@ -24,4 +28,12 @@ test "Init StaticList" {
 test "initial length" {
     const list = StaticList(2, u8).init();
     try expect(list.length == 0);
+}
+
+test "push increases length" {
+    var list = StaticList(2, u8).init();
+    list.push(0);
+    try expect(list.length == 1);
+    list.push(0);
+    try expect(list.length == 2);
 }
