@@ -11,8 +11,15 @@ fn StaticList(comptime capacity: usize, comptime T: type) type {
             overshrink,
         };
 
+        fn initExisting(list: *StaticList(capacity, T)) void {
+            list.items = undefined;
+            list.length = 0;
+        }
+
         fn init() StaticList(capacity, T) {
-            return StaticList(capacity, T){ .items = undefined, .length = 0 };
+            var list: StaticList(capacity, T) = undefined;
+            list.initExisting();
+            return list;
         }
 
         fn push(list: *StaticList(capacity, T), value: T) !void {
@@ -65,6 +72,12 @@ test "Create StaticList" {
 
 test "Init StaticList" {
     const list = StaticList(2, u8).init();
+    try expect(list.items.len == 2);
+}
+
+test "Init existing StaticList" {
+    var list: StaticList(2, u8) = undefined;
+    list.initExisting();
     try expect(list.items.len == 2);
 }
 
