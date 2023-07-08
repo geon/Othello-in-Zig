@@ -25,6 +25,16 @@ fn StaticList(comptime capacity: usize, comptime T: type) type {
             list.length += 1;
         }
 
+        fn add(list: *StaticList(capacity, T)) !*T {
+            if (list.length == list.items.len) {
+                return Error.overpush;
+            }
+
+            var item = &list.items[list.length];
+            list.length += 1;
+            return item;
+        }
+
         fn pop(list: *StaticList(capacity, T)) !T {
             if (list.length <= 0) {
                 return Error.underpop;
@@ -122,4 +132,11 @@ test "Shrinking the list discards the items at the end." {
     try list.shrink(2);
     try expect(try list.pop() == 2);
     try expect(try list.pop() == 1);
+}
+
+test "Add should work like push." {
+    var list = StaticList(1, u8).init();
+    var item = try list.add();
+    item.* = 42;
+    try expect(try list.pop() == 42);
 }
