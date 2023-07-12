@@ -3,12 +3,12 @@ const StaticList = @import("static-list.zig").StaticList;
 const std = @import("std");
 
 const Player = i8;
-const Cell = i8;
+pub const Cell = i8;
 
-const Board = struct {
+pub const Board = struct {
     cells: [64]Cell,
 
-    fn stepIsLegal(position: Coord, offSet: Coord) bool {
+    pub fn stepIsLegal(position: Coord, offSet: Coord) bool {
         // Take care of left, ...
         if (position.x == 0 and offSet.x == -1) {
             return false;
@@ -42,7 +42,7 @@ const Board = struct {
         Coord{ .x = 1, .y = 1 },
     };
 
-    const Move = struct {
+    pub const Move = struct {
         position: Coord,
         player: Player,
         // 4 possible axies (left/right is shared) and max 6 flipped pieces in each (8 pieces across minus one added piece and at least one end-piece) .
@@ -81,7 +81,7 @@ const Board = struct {
             }
         }
 
-        fn init(
+        pub fn init(
             move: *Move,
             board: Board,
             position: Coord,
@@ -109,7 +109,7 @@ const Board = struct {
         }
     };
 
-    fn getLegalMoves(
+    pub fn getLegalMoves(
         board: Board,
         player: Player,
         legalMoves: *StaticList(64, Move),
@@ -128,7 +128,7 @@ const Board = struct {
         }
     }
 
-    fn doMove(board: *Board, move: Move) void {
+    pub fn doMove(board: *Board, move: Move) void {
         board.cells[@intCast(move.position.toIndex())] = move.player;
         for (move.flips.items[0..move.flips.length]) |position| {
             board.cells[@intCast(position.toIndex())] = move.player;
