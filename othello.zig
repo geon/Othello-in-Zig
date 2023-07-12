@@ -8,6 +8,19 @@ pub const Cell = i8;
 pub const Board = struct {
     cells: [64]Cell,
 
+    pub fn init() Board {
+        return Board{ .cells = [64]Cell{
+            0, 0, 0, 0,  0,  0, 0, 0,
+            0, 0, 0, 0,  0,  0, 0, 0,
+            0, 0, 0, 0,  0,  0, 0, 0,
+            0, 0, 0, -1, 1,  0, 0, 0,
+            0, 0, 0, 1,  -1, 0, 0, 0,
+            0, 0, 0, 0,  0,  0, 0, 0,
+            0, 0, 0, 0,  0,  0, 0, 0,
+            0, 0, 0, 0,  0,  0, 0, 0,
+        } };
+    }
+
     pub fn stepIsLegal(position: Coord, offSet: Coord) bool {
         // Take care of left, ...
         if (position.x == 0 and offSet.x == -1) {
@@ -234,16 +247,7 @@ test "stepIsLegal" {
 }
 
 test "flipRow" {
-    const board = Board{ .cells = [64]Cell{
-        0, 0, 0, 0,  0,  0, 0, 0,
-        0, 0, 0, 0,  0,  0, 0, 0,
-        0, 0, 0, 0,  0,  0, 0, 0,
-        0, 0, 0, -1, 1,  0, 0, 0,
-        0, 0, 0, 1,  -1, 0, 0, 0,
-        0, 0, 0, 0,  0,  0, 0, 0,
-        0, 0, 0, 0,  0,  0, 0, 0,
-        0, 0, 0, 0,  0,  0, 0, 0,
-    } };
+    const board = Board.init();
 
     var move = Board.Move{
         .position = Coord{ .x = 2, .y = 3 },
@@ -258,16 +262,7 @@ test "flipRow" {
 }
 
 test "getLegalMoves" {
-    const board = Board{ .cells = [64]Cell{
-        0, 0, 0, 0,  0,  0, 0, 0,
-        0, 0, 0, 0,  0,  0, 0, 0,
-        0, 0, 0, 0,  0,  0, 0, 0,
-        0, 0, 0, -1, 1,  0, 0, 0,
-        0, 0, 0, 1,  -1, 0, 0, 0,
-        0, 0, 0, 0,  0,  0, 0, 0,
-        0, 0, 0, 0,  0,  0, 0, 0,
-        0, 0, 0, 0,  0,  0, 0, 0,
-    } };
+    const board = Board.init();
 
     var moves = StaticList(64, Board.Move).init();
     try board.getLegalMoves(1, &moves);
@@ -280,16 +275,7 @@ test "getLegalMoves" {
 }
 
 test "doMove" {
-    var board = Board{ .cells = [64]Cell{
-        0, 0, 0, 0,  0,  0, 0, 0,
-        0, 0, 0, 0,  0,  0, 0, 0,
-        0, 0, 0, 0,  0,  0, 0, 0,
-        0, 0, 0, -1, 1,  0, 0, 0,
-        0, 0, 0, 1,  -1, 0, 0, 0,
-        0, 0, 0, 0,  0,  0, 0, 0,
-        0, 0, 0, 0,  0,  0, 0, 0,
-        0, 0, 0, 0,  0,  0, 0, 0,
-    } };
+    var board = Board.init();
 
     var move: Board.Move = undefined;
     _ = try move.init(board, Coord{ .x = 2, .y = 3 }, 1);
@@ -301,16 +287,7 @@ test "doMove" {
 }
 
 test "undoMove" {
-    var board = Board{ .cells = [64]Cell{
-        0, 0, 0, 0,  0,  0, 0, 0,
-        0, 0, 0, 0,  0,  0, 0, 0,
-        0, 0, 0, 0,  0,  0, 0, 0,
-        0, 0, 0, -1, 1,  0, 0, 0,
-        0, 0, 0, 1,  -1, 0, 0, 0,
-        0, 0, 0, 0,  0,  0, 0, 0,
-        0, 0, 0, 0,  0,  0, 0, 0,
-        0, 0, 0, 0,  0,  0, 0, 0,
-    } };
+    var board = Board.init();
 
     var move: Board.Move = undefined;
     _ = try move.init(board, Coord{ .x = 2, .y = 3 }, 1);

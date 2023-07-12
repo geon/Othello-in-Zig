@@ -97,16 +97,7 @@ pub fn main() !void {
     var markedPosition: Coord = undefined;
     //    var userMove;
     //    var moveList[64];
-    var board = Board{ .cells = [64]Cell{
-        0, 0, 0, 0,  0,  0, 0, 0,
-        0, 0, 0, 0,  0,  0, 0, 0,
-        0, 0, 0, 0,  0,  0, 0, 0,
-        0, 0, 0, -1, 1,  0, 0, 0,
-        0, 0, 0, 1,  -1, 0, 0, 0,
-        0, 0, 0, 0,  0,  0, 0, 0,
-        0, 0, 0, 0,  0,  0, 0, 0,
-        0, 0, 0, 0,  0,  0, 0, 0,
-    } };
+    var board = Board.init();
 
     {
         // Reset the marked position initially.
