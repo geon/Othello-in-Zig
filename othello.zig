@@ -151,6 +151,29 @@ const Board = struct {
 
         return score;
     }
+
+    //  The heuristicScores-values describes how valuable the pieces on these positions are.
+    const heuristicScores = [64]i8{
+        8,  -4, 6, 4, 4, 6, -4, 8,
+        -4, -4, 0, 0, 0, 0, -4, -4,
+        6,  0,  2, 2, 2, 2, 0,  6,
+        4,  0,  2, 1, 1, 2, 0,  4,
+        4,  0,  2, 1, 1, 2, 0,  4,
+        6,  0,  2, 2, 2, 2, 0,  6,
+        -4, -4, 0, 0, 0, 0, -4, -4,
+        8,  -4, 6, 4, 4, 6, -4, 8,
+    };
+
+    fn heuristicScore(board: Board, player: Player) i32 {
+        var score: i32 = 0;
+
+        // Reward the player with the most weighted pieces.
+        for (0..64) |i| {
+            score += heuristicScores[i] * player * board.cells[i];
+        }
+
+        return score;
+    }
 };
 
 const expect = @import("std").testing.expect;
@@ -285,4 +308,28 @@ test "pieceBalance" {
         1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1,
     } }).pieceBalance(-1));
+}
+
+test "heuristicScore" {
+    try expectEqual(@as(i32, 0), (Board{ .cells = [64]Cell{
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+    } }).heuristicScore(1));
+
+    try expectEqual(@as(i32, 92), (Board{ .cells = [64]Cell{
+        1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1,
+    } }).heuristicScore(1));
 }
