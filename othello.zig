@@ -189,6 +189,38 @@ pub const Board = struct {
         }
         return score;
     }
+
+    pub fn getBestMove(
+        board: *Board,
+        player: Player,
+        legalMoves: []const Move,
+    ) !Coord {
+        var bestScore: i32 = std.math.minInt(i32);
+        var bestMove = legalMoves[0].position;
+
+        for (legalMoves) |move| {
+            board.doMove(move);
+
+            var legalMovesPlayer = StaticList(64, Move).init();
+            try board.getLegalMoves(player, &legalMovesPlayer);
+
+            var legalMovesOpponent = StaticList(64, Move).init();
+            try board.getLegalMoves(-player, &legalMovesOpponent);
+
+            const score = (board.heuristicScore(player) +
+                @as(i32, @intCast(legalMovesPlayer.length)) -
+                @as(i32, @intCast(legalMovesOpponent.length)));
+
+            if (score > bestScore) {
+                bestScore = score;
+                bestMove = move.position;
+            }
+
+            board.undoMove(move);
+        }
+
+        return bestMove;
+    }
 };
 
 const expect = @import("std").testing.expect;
