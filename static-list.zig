@@ -5,7 +5,7 @@ pub fn StaticList(comptime capacity: usize, comptime T: type) type {
         items: [capacity]T,
         length: usize,
 
-        const Error = error{
+        pub const Error = error{
             underpop,
             overpush,
             overshrink,

@@ -3,12 +3,12 @@ const StaticList = @import("static-list.zig").StaticList;
 const std = @import("std");
 
 const Player = i8;
-const Cell = i8;
+pub const Cell = i8;
 
-const Board = struct {
+pub const Board = struct {
     cells: [64]Cell,
 
-    fn stepIsLegal(position: Coord, offSet: Coord) bool {
+    pub fn stepIsLegal(position: Coord, offSet: Coord) bool {
         // Take care of left, ...
         if (position.x == 0 and offSet.x == -1) {
             return false;
@@ -42,7 +42,7 @@ const Board = struct {
         Coord{ .x = 1, .y = 1 },
     };
 
-    const Move = struct {
+    pub const Move = struct {
         position: Coord,
         player: Player,
         // 4 possible axies (left/right is shared) and max 6 flipped pieces in each (8 pieces across minus one added piece and at least one end-piece) .
@@ -81,7 +81,7 @@ const Board = struct {
             }
         }
 
-        fn init(
+        pub fn init(
             move: *Move,
             board: Board,
             position: Coord,
@@ -109,7 +109,7 @@ const Board = struct {
         }
     };
 
-    fn getLegalMoves(
+    pub fn getLegalMoves(
         board: Board,
         player: Player,
         legalMoves: *StaticList(64, Move),
@@ -118,7 +118,7 @@ const Board = struct {
         _ = originalLength;
 
         // Loop through all squares to find legal moves and add them to the list.
-        for (0..63) |i| {
+        for (0..64) |i| {
             const position = Coord.fromIndex(@intCast(i));
             var move = try legalMoves.add();
             if (!try move.init(board, position, player)) {
@@ -128,18 +128,168 @@ const Board = struct {
         }
     }
 
-    fn doMove(board: *Board, move: Move) void {
+    pub fn doMove(board: *Board, move: Move) void {
         board.cells[@intCast(move.position.toIndex())] = move.player;
         for (move.flips.items[0..move.flips.length]) |position| {
             board.cells[@intCast(position.toIndex())] = move.player;
         }
     }
 
-    fn undoMove(board: *Board, move: Move) void {
+    pub fn undoMove(board: *Board, move: Move) void {
         board.cells[@intCast(move.position.toIndex())] = 0;
         for (move.flips.items[0..move.flips.length]) |position| {
             board.cells[@intCast(position.toIndex())] = -move.player;
         }
+    }
+
+    //  The heuristicScores-values describes how valuable the pieces on these positions are.
+    const heuristicScores = [64]i8{
+        8,  -4, 6, 4, 4, 6, -4, 8,
+        -4, -4, 0, 0, 0, 0, -4, -4,
+        6,  0,  2, 2, 2, 2, 0,  6,
+        4,  0,  2, 1, 1, 2, 0,  4,
+        4,  0,  2, 1, 1, 2, 0,  4,
+        6,  0,  2, 2, 2, 2, 0,  6,
+        -4, -4, 0, 0, 0, 0, -4, -4,
+        8,  -4, 6, 4, 4, 6, -4, 8,
+    };
+
+    fn heuristicScore(board: Board, player: Player) i32 {
+        var score: i32 = 0;
+
+        // Reward the player with the most weighted pieces.
+        for (0..64) |i| {
+            score += heuristicScores[i] * player * board.cells[i];
+        }
+
+        return score;
+    }
+
+    fn pieceBalance(board: Board, player: Player) i32 {
+        var score: i32 = 0;
+
+        for (0..64) |i| {
+            score += player * board.cells[i];
+        }
+
+        return score;
+    }
+
+    const MoveScore = struct {
+        position: Coord,
+        score: i32,
+    };
+
+    fn miniMax(
+        board: *Board,
+        player: Player,
+        legalMoves: StaticList(64, Move),
+        searchDepth: u8,
+        scores: *StaticList(64, MoveScore),
+    ) !void {
+        // Try the moves and score them.
+        for (legalMoves.items[0..legalMoves.length]) |move| {
+            board.doMove(move);
+            try scores.push(MoveScore{
+                .position = move.position,
+                .score = try evaluateBoard(board, player, searchDepth),
+            });
+            board.undoMove(move);
+        }
+    }
+
+    fn getBestScore(scoredMoves: StaticList(64, MoveScore)) i32 {
+        var score: i32 = std.math.minInt(i32);
+        for (scoredMoves.items[0..scoredMoves.length]) |entry| {
+            if (entry.score > score) {
+                score = entry.score;
+            }
+        }
+        return score;
+    }
+
+    fn evaluateBoard(
+        board: *Board,
+        player: Player,
+        searchDepth: u8,
+    ) StaticList(64, Move).Error!i32 {
+        var legalMovesOpponent = StaticList(64, Move).init();
+        try board.getLegalMoves(-player, &legalMovesOpponent);
+
+        if (searchDepth <= 1) {
+            // The max depth is reached. Use simple heuristics.
+            var legalMovesPlayer = StaticList(64, Move).init();
+            try board.getLegalMoves(
+                player,
+                &legalMovesPlayer,
+            );
+            return (board.heuristicScore(player) +
+                @as(i32, @intCast(legalMovesPlayer.length)) -
+                @as(i32, @intCast(legalMovesOpponent.length)));
+        }
+
+        if (legalMovesOpponent.length > 0) {
+            // Switch player.
+            var scores = StaticList(64, MoveScore).init();
+            try board.miniMax(-player, legalMovesOpponent, searchDepth - 1, &scores);
+            return -getBestScore(scores);
+        }
+
+        {
+            // The opponent has no legal moves, so don't switch player.
+            var legalMovesPlayer = StaticList(64, Move).init();
+            try board.getLegalMoves(
+                player,
+                &legalMovesPlayer,
+            );
+            if (legalMovesPlayer.length > 0) {
+                // The player can move again.
+                var scores = StaticList(64, MoveScore).init();
+                try board.miniMax(player, legalMovesPlayer, searchDepth - 1, &scores);
+                return getBestScore(scores);
+            }
+        }
+
+        // Noone can move. Game over.
+
+        // Count the pieces.
+        const balance = board.pieceBalance(player);
+        // Reward the winner.
+        if (balance > 0) {
+            // TODO:
+            // Return high score
+            // * plus the piece count, so the AI prioritizes the greatest win, not just any win.
+            // * plus the opportunity count, so the AI prioritizes the smartest move, in case the opponent makes a mistake.
+            return std.math.maxInt(i32);
+        } else if (balance < 0) {
+            return std.math.minInt(i32);
+        } else {
+            return 0;
+        }
+    }
+
+    pub fn getBestMove(
+        board: *Board,
+        player: Player,
+        legalMoves: StaticList(64, Move),
+    ) !Coord {
+        // 0 = easy, 1 = normal, 3 = hard, 4 = very hard.
+        const searchDepth = 4;
+
+        var scoredMoves = StaticList(64, MoveScore).init();
+        try board.miniMax(player, legalMoves, searchDepth, &scoredMoves);
+
+        var bestScore: i32 = std.math.minInt(i32);
+        var bestMove = legalMoves.items[0].position;
+
+        for (scoredMoves.items[0..scoredMoves.length]) |scoredMove| {
+            if (scoredMove.score > bestScore) {
+                bestScore = scoredMove.score;
+                bestMove = scoredMove.position;
+            }
+        }
+
+        return bestMove;
     }
 };
 
