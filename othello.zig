@@ -185,14 +185,15 @@ pub const Board = struct {
         player: Player,
         legalMoves: StaticList(64, Move),
         searchDepth: u8,
-        scores: *StaticList(64, MoveScore),
+        scores: []StaticList(64, MoveScore),
     ) !void {
+        scores[searchDepth].initExisting();
         // Try the moves and score them.
         for (legalMoves.items[0..legalMoves.length]) |move| {
             board.doMove(move);
-            try scores.push(MoveScore{
+            try scores[searchDepth].push(MoveScore{
                 .position = move.position,
-                .score = try evaluateBoard(board, player, searchDepth),
+                .score = try evaluateBoard(board, player, searchDepth, scores),
             });
             board.undoMove(move);
         }
@@ -212,7 +213,10 @@ pub const Board = struct {
         board: *Board,
         player: Player,
         searchDepth: u8,
+        scoreses: []StaticList(64, MoveScore),
     ) StaticList(64, Move).Error!i32 {
+        var scores: StaticList(64, MoveScore) = scoreses[searchDepth];
+
         var legalMovesOpponent = StaticList(64, Move).init();
         try board.getLegalMoves(-player, &legalMovesOpponent);
 
@@ -230,8 +234,7 @@ pub const Board = struct {
 
         if (legalMovesOpponent.length > 0) {
             // Switch player.
-            var scores = StaticList(64, MoveScore).init();
-            try board.miniMax(-player, legalMovesOpponent, searchDepth - 1, &scores);
+            try board.miniMax(-player, legalMovesOpponent, searchDepth - 1, scoreses);
             return -getBestScore(scores);
         }
 
@@ -244,8 +247,7 @@ pub const Board = struct {
             );
             if (legalMovesPlayer.length > 0) {
                 // The player can move again.
-                var scores = StaticList(64, MoveScore).init();
-                try board.miniMax(player, legalMovesPlayer, searchDepth - 1, &scores);
+                try board.miniMax(player, legalMovesPlayer, searchDepth - 1, scoreses);
                 return getBestScore(scores);
             }
         }
@@ -276,13 +278,15 @@ pub const Board = struct {
         // 0 = easy, 1 = normal, 3 = hard, 4 = very hard.
         const searchDepth = 4;
 
-        var scoredMoves = StaticList(64, MoveScore).init();
-        try board.miniMax(player, legalMoves, searchDepth, &scoredMoves);
+        var q: [searchDepth + 1]StaticList(64, MoveScore) = undefined;
+        var scoredMoves: []StaticList(64, MoveScore) = &q;
+
+        try board.miniMax(player, legalMoves, searchDepth, scoredMoves);
 
         var bestScore: i32 = std.math.minInt(i32);
         var bestMove = legalMoves.items[0].position;
 
-        for (scoredMoves.items[0..scoredMoves.length]) |scoredMove| {
+        for (scoredMoves[searchDepth].items[0..scoredMoves[searchDepth].length]) |scoredMove| {
             if (scoredMove.score > bestScore) {
                 bestScore = scoredMove.score;
                 bestMove = scoredMove.position;
