@@ -174,6 +174,21 @@ const Board = struct {
 
         return score;
     }
+
+    const MoveScore = struct {
+        position: Coord,
+        score: i32,
+    };
+
+    fn getBestScore(scoredMoves: []const MoveScore) i32 {
+        var score: i32 = std.math.minInt(i32);
+        for (scoredMoves) |entry| {
+            if (entry.score > score) {
+                score = entry.score;
+            }
+        }
+        return score;
+    }
 };
 
 const expect = @import("std").testing.expect;
@@ -332,4 +347,13 @@ test "heuristicScore" {
         1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1,
     } }).heuristicScore(1));
+}
+
+test "getBestScore" {
+    const moveScores = [_]Board.MoveScore{
+        Board.MoveScore{ .position = undefined, .score = 1 },
+        Board.MoveScore{ .position = undefined, .score = 3 },
+        Board.MoveScore{ .position = undefined, .score = 2 },
+    };
+    try expectEqual(@as(i32, 3), Board.getBestScore(&moveScores));
 }
