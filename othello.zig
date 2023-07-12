@@ -141,6 +141,16 @@ const Board = struct {
             board.cells[@intCast(position.toIndex())] = -move.player;
         }
     }
+
+    fn pieceBalance(board: Board, player: Player) i32 {
+        var score: i32 = 0;
+
+        for (0..64) |i| {
+            score += player * board.cells[i];
+        }
+
+        return score;
+    }
 };
 
 const expect = @import("std").testing.expect;
@@ -240,4 +250,39 @@ test "undoMove" {
 
     try expectEqual(@as(i8, 0), board.cells[@as(u8, @intCast((Coord{ .x = 2, .y = 3 }).toIndex()))]);
     try expectEqual(@as(i8, -1), board.cells[@as(u8, @intCast((Coord{ .x = 3, .y = 3 }).toIndex()))]);
+}
+
+test "pieceBalance" {
+    try expectEqual(@as(i32, 0), (Board{ .cells = [64]Cell{
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+    } }).pieceBalance(1));
+
+    try expectEqual(@as(i32, 64), (Board{ .cells = [64]Cell{
+        1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1,
+    } }).pieceBalance(1));
+
+    try expectEqual(@as(i32, -64), (Board{ .cells = [64]Cell{
+        1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1,
+    } }).pieceBalance(-1));
 }
