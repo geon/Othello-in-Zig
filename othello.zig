@@ -203,6 +203,21 @@ pub const Board = struct {
         return score;
     }
 
+    fn evaluateBoard(
+        board: *Board,
+        player: Player,
+    ) !i32 {
+        var legalMovesPlayer = StaticList(64, Move).init();
+        try board.getLegalMoves(player, &legalMovesPlayer);
+
+        var legalMovesOpponent = StaticList(64, Move).init();
+        try board.getLegalMoves(-player, &legalMovesOpponent);
+
+        return (board.heuristicScore(player) +
+            @as(i32, @intCast(legalMovesPlayer.length)) -
+            @as(i32, @intCast(legalMovesOpponent.length)));
+    }
+
     pub fn getBestMove(
         board: *Board,
         player: Player,
@@ -214,15 +229,7 @@ pub const Board = struct {
         for (legalMoves) |move| {
             board.doMove(move);
 
-            var legalMovesPlayer = StaticList(64, Move).init();
-            try board.getLegalMoves(player, &legalMovesPlayer);
-
-            var legalMovesOpponent = StaticList(64, Move).init();
-            try board.getLegalMoves(-player, &legalMovesOpponent);
-
-            const score = (board.heuristicScore(player) +
-                @as(i32, @intCast(legalMovesPlayer.length)) -
-                @as(i32, @intCast(legalMovesOpponent.length)));
+            const score = try board.evaluateBoard(player);
 
             if (score > bestScore) {
                 bestScore = score;
