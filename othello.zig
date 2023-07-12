@@ -118,7 +118,7 @@ const Board = struct {
         _ = originalLength;
 
         // Loop through all squares to find legal moves and add them to the list.
-        for (0..63) |i| {
+        for (0..64) |i| {
             const position = Coord.fromIndex(@intCast(i));
             var move = try legalMoves.add();
             if (!try move.init(board, position, player)) {
