@@ -73,15 +73,17 @@ fn getUserMove(
 
         if (key == 10) {
             // Ignore return key.
-        } else if (key == 27) {
-            return null; // [ESC]-key
-        } else if (key == 'h' and Board.stepIsLegal(markedPosition, Coord{ .x = -1, .y = 0 })) {
+        } else if (key == 27 or key == 'q') {
+            // 27: [ESC]-key
+            return null; // Exit
+            // hj/jk and wasd cursor movement.
+        } else if ((key == 'h' or key == 'a') and Board.stepIsLegal(markedPosition, Coord{ .x = -1, .y = 0 })) {
             markedPosition = markedPosition.add(Coord{ .x = -1, .y = 0 });
-        } else if (key == 'l' and Board.stepIsLegal(markedPosition, Coord{ .x = 1, .y = 0 })) {
+        } else if ((key == 'l' or key == 'd') and Board.stepIsLegal(markedPosition, Coord{ .x = 1, .y = 0 })) {
             markedPosition = markedPosition.add(Coord{ .x = 1, .y = 0 });
-        } else if (key == 'j' and Board.stepIsLegal(markedPosition, Coord{ .x = 0, .y = -1 })) {
+        } else if ((key == 'j' or key == 'w') and Board.stepIsLegal(markedPosition, Coord{ .x = 0, .y = -1 })) {
             markedPosition = markedPosition.add(Coord{ .x = 0, .y = -1 });
-        } else if (key == 'k' and Board.stepIsLegal(markedPosition, Coord{ .x = 0, .y = 1 })) {
+        } else if ((key == 'k' or key == 's') and Board.stepIsLegal(markedPosition, Coord{ .x = 0, .y = 1 })) {
             markedPosition = markedPosition.add(Coord{ .x = 0, .y = 1 });
         }
 
