@@ -63,7 +63,9 @@ fn getUserMove(
     board: Board,
     player: i8,
     initialMarkedPosition: Coord,
+    legalMoves: StaticList(64, Board.Move),
 ) !?Coord {
+    _ = legalMoves;
     var markedPosition = initialMarkedPosition;
 
     while (true) {
@@ -88,8 +90,11 @@ fn getUserMove(
         }
 
         if (key == ' ') {
-            std.debug.print("returning\n", .{});
-            return markedPosition;
+            var move: Board.Move = undefined;
+            var legal = try Board.Move.init(&move, board, markedPosition, player);
+            if (legal) {
+                return markedPosition;
+            }
         }
     }
 }
@@ -116,7 +121,7 @@ pub fn main() !void {
             if (player == 1) {
                 // User input.
                 // markedPosition = legalMoves.items[1].position;
-                const userMove = try getUserMove(board, player, markedPosition);
+                const userMove = try getUserMove(board, player, markedPosition, legalMoves);
                 if (userMove == null) {
                     break;
                 }
