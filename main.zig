@@ -133,16 +133,19 @@ pub fn main() !void {
                 }
             } else {
                 // AI
-                markedPosition = try board.getBestMove(player, legalMoves.items[0..legalMoves.length]);
-                var move: Board.Move = undefined;
-                _ = try Board.Move.init(
-                    &move,
-                    board,
-                    markedPosition,
-                    -1,
-                );
-                board.doMove(move);
-                player = -player;
+                var bestMove = try board.getBestMove(player);
+                if (bestMove) |validBestMove| {
+                    markedPosition = validBestMove;
+                    var move: Board.Move = undefined;
+                    _ = try Board.Move.init(
+                        &move,
+                        board,
+                        validBestMove,
+                        -1,
+                    );
+                    board.doMove(move);
+                    player = -player;
+                }
             }
         } else {
             player = -player;
