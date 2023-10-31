@@ -135,8 +135,8 @@ pub fn main() !void {
                         1,
                     );
                     board.doMove(move);
-                    printBoard(board, innerUserMove, player);
                     player = -player;
+                    printBoard(board, innerUserMove, player);
                 }
             } else {
                 // AI
