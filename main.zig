@@ -30,9 +30,14 @@ fn printBoard(
     }
     std.debug.print("   ⚫️:{d} ⚪️:{d}", .{ pl1Count, pl2Count });
 
-    std.debug.print("\n  +---+---+---+---+---+---+---+---+\n", .{});
+    // Set style to black on green background.
+    const colorOn = "\x1b[30;42m";
+    // Reset styles.
+    const colorOff = "\x1b[0m";
+
+    std.debug.print("\n  {s}+---+---+---+---+---+---+---+---+{s}\n", .{ colorOn, colorOff });
     for (0..8) |y| {
-        std.debug.print("  |", .{});
+        std.debug.print("  {s}|", .{colorOn});
         for (0..8) |x| {
             if (board.cells[x + y * 8] == 1) {
                 std.debug.print(" ⚫️|", .{});
@@ -42,10 +47,11 @@ fn printBoard(
                 std.debug.print("   |", .{});
             }
         }
+        std.debug.print("{s}", .{colorOff});
         if (y == markedPosition.y) {
             std.debug.print(" <-", .{});
         }
-        std.debug.print("\n  +---+---+---+---+---+---+---+---+\n", .{});
+        std.debug.print("\n  {s}+---+---+---+---+---+---+---+---+{s}\n", .{ colorOn, colorOff });
     }
 
     for (0..@as(u8, @intCast(markedPosition.x)) + 1) |_| {
