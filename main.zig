@@ -120,40 +120,39 @@ pub fn main() !void {
         printBoard(match.board, markedPosition, matchState.player);
 
         if (matchState.legalMoves.length > 0) {
+            var move: Board.Move = undefined;
             if (matchState.player == 1) {
                 // User input.
-                const userMove = try getUserMove(match.board, matchState.player, markedPosition, matchState.legalMoves);
-                if (userMove == null) {
-                    break;
-                }
-
-                if (userMove) |innerUserMove| {
-                    var move: Board.Move = undefined;
+                // TODO: Return a move instead of a coord.
+                const coord = try getUserMove(match.board, matchState.player, markedPosition, matchState.legalMoves);
+                if (coord) |validCoord| {
                     _ = try Board.Move.init(
                         &move,
                         match.board,
-                        innerUserMove,
-                        1,
+                        validCoord,
+                        matchState.player,
                     );
-                    matchState = try match.doMove(move);
+                } else {
+                    break;
                 }
             } else {
                 // AI
-                var bestMove = try match.board.getBestMove(matchState.player);
-
-                // TODO: Everything below is duplicated. Eliminate
-                if (bestMove) |validBestMove| {
-                    markedPosition = validBestMove;
-                    var move: Board.Move = undefined;
+                // TODO: Return a move instead of a coord.
+                const coord = try match.board.getBestMove(matchState.player);
+                if (coord) |validCoord| {
                     _ = try Board.Move.init(
                         &move,
                         match.board,
-                        validBestMove,
-                        -1,
+                        validCoord,
+                        matchState.player,
                     );
-                    matchState = try match.doMove(move);
+                } else {
+                    break;
                 }
             }
+
+            matchState = try match.doMove(move);
+            markedPosition = move.position;
         } else {
             printBoard(match.board, markedPosition, matchState.player);
             std.debug.print("  Game Over\n\n", .{});
