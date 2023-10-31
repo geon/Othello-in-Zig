@@ -249,6 +249,41 @@ pub const Board = struct {
     }
 };
 
+pub const MatchState = struct {
+    player: Player,
+    legalMoves: StaticList(64, Board.Move),
+};
+
+pub const Match = struct {
+    board: Board,
+    player: Player,
+
+    pub fn init() Match {
+        return Match{ .board = Board.init(), .player = 1 };
+    }
+
+    pub fn start(match: *Match) !MatchState {
+        var legalMoves = StaticList(64, Board.Move).init();
+        try match.board.getLegalMoves(match.player, &legalMoves);
+        return MatchState{ .player = match.player, .legalMoves = legalMoves };
+    }
+
+    pub fn doMove(match: *Match, move: Board.Move) !MatchState {
+        match.board.doMove(move);
+        match.player = -match.player;
+
+        var legalMoves = StaticList(64, Board.Move).init();
+        try match.board.getLegalMoves(match.player, &legalMoves);
+
+        if (legalMoves.length < 1) {
+            match.player = -match.player;
+            try match.board.getLegalMoves(match.player, &legalMoves);
+        }
+
+        return MatchState{ .player = match.player, .legalMoves = legalMoves };
+    }
+};
+
 const expect = @import("std").testing.expect;
 const expectEqual = @import("std").testing.expectEqual;
 

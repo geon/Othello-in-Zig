@@ -1,4 +1,5 @@
 const Othello = @import("othello.zig");
+const Match = Othello.Match;
 const Board = Othello.Board;
 const Cell = Othello.Cell;
 const Coord = @import("coord.zig").Coord;
@@ -106,30 +107,22 @@ fn getUserMove(
 }
 
 pub fn main() !void {
-    var player: i8 = 1;
     var markedPosition: Coord = undefined;
-    //    var userMove;
-    //    var moveList[64];
-    var board = Board.init();
+    var match = Match.init();
+    var matchState = try match.start();
 
     {
         // Reset the marked position initially.
-        var legalMoves = StaticList(64, Board.Move).init();
-        try board.getLegalMoves(player, &legalMoves);
-        markedPosition = legalMoves.items[1].position;
+        markedPosition = matchState.legalMoves.items[1].position;
     }
 
     while (true) {
-        printBoard(board, markedPosition, player);
+        printBoard(match.board, markedPosition, matchState.player);
 
-        var legalMoves = StaticList(64, Board.Move).init();
-        try board.getLegalMoves(player, &legalMoves);
-
-        if (legalMoves.length > 0) {
-            if (player == 1) {
+        if (matchState.legalMoves.length > 0) {
+            if (matchState.player == 1) {
                 // User input.
-                // markedPosition = legalMoves.items[1].position;
-                const userMove = try getUserMove(board, player, markedPosition, legalMoves);
+                const userMove = try getUserMove(match.board, matchState.player, markedPosition, matchState.legalMoves);
                 if (userMove == null) {
                     break;
                 }
@@ -138,38 +131,33 @@ pub fn main() !void {
                     var move: Board.Move = undefined;
                     _ = try Board.Move.init(
                         &move,
-                        board,
+                        match.board,
                         innerUserMove,
                         1,
                     );
-                    board.doMove(move);
-                    player = -player;
+                    matchState = try match.doMove(move);
                 }
             } else {
                 // AI
-                var bestMove = try board.getBestMove(player);
+                var bestMove = try match.board.getBestMove(matchState.player);
+
+                // TODO: Everything below is duplicated. Eliminate
                 if (bestMove) |validBestMove| {
                     markedPosition = validBestMove;
                     var move: Board.Move = undefined;
                     _ = try Board.Move.init(
                         &move,
-                        board,
+                        match.board,
                         validBestMove,
                         -1,
                     );
-                    board.doMove(move);
-                    player = -player;
+                    matchState = try match.doMove(move);
                 }
             }
         } else {
-            player = -player;
-            var legalMoves2 = StaticList(64, Board.Move).init();
-            try board.getLegalMoves(player, &legalMoves2);
-            if (legalMoves2.length == 0) {
-                printBoard(board, markedPosition, player);
-                std.debug.print("  Game Over\n\n", .{});
-                break;
-            }
+            printBoard(match.board, markedPosition, matchState.player);
+            std.debug.print("  Game Over\n\n", .{});
+            break;
         }
     }
 }
