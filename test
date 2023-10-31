@@ -1,2 +1,1 @@
-../../../zig/zig test othello.zig
-# ../../../zig/zig test static-list.zig
+zig test othello.zig

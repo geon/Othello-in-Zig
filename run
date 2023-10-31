@@ -1,1 +1,1 @@
-../../../zig/zig run main.zig
+zig run main.zig
