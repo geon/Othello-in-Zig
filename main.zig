@@ -30,32 +30,32 @@ fn printBoard(
     }
     std.debug.print("   X:{d} O:{d}", .{ pl1Count, pl2Count });
 
-    std.debug.print("\n  +-+-+-+-+-+-+-+-+\n", .{});
+    std.debug.print("\n  +---+---+---+---+---+---+---+---+\n", .{});
     for (0..8) |y| {
         std.debug.print("  |", .{});
         for (0..8) |x| {
             if (board.cells[x + y * 8] == 1) {
-                std.debug.print("X|", .{});
+                std.debug.print(" X |", .{});
             } else if (board.cells[x + y * 8] == -1) {
-                std.debug.print("O|", .{});
+                std.debug.print(" O |", .{});
             } else {
-                std.debug.print(" |", .{});
+                std.debug.print("   |", .{});
             }
         }
         if (y == markedPosition.y) {
             std.debug.print(" <-", .{});
         }
-        std.debug.print("\n  +-+-+-+-+-+-+-+-+\n", .{});
+        std.debug.print("\n  +---+---+---+---+---+---+---+---+\n", .{});
     }
 
     for (0..@as(u8, @intCast(markedPosition.x)) + 1) |_| {
-        std.debug.print("  ", .{});
+        std.debug.print("    ", .{});
     }
-    std.debug.print(" ^\n", .{});
+    std.debug.print("^\n", .{});
     for (0..@as(u8, @intCast(markedPosition.x)) + 1) |_| {
-        std.debug.print("  ", .{});
+        std.debug.print("    ", .{});
     }
-    std.debug.print(" |\n", .{});
+    std.debug.print("|\n", .{});
 }
 
 // Let the user pick a move. Returns null if he/she wants to quit.
