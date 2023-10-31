@@ -69,8 +69,6 @@ fn getUserMove(
     var markedPosition = initialMarkedPosition;
 
     while (true) {
-        printBoard(board, markedPosition, player);
-
         const key = try stdin.readByte();
 
         if (key == 10) {
@@ -96,6 +94,8 @@ fn getUserMove(
                 return markedPosition;
             }
         }
+
+        printBoard(board, markedPosition, player);
     }
 }
 
@@ -114,6 +114,8 @@ pub fn main() !void {
     }
 
     while (true) {
+        printBoard(board, markedPosition, player);
+
         var legalMoves = StaticList(64, Board.Move).init();
         try board.getLegalMoves(player, &legalMoves);
 
@@ -136,7 +138,6 @@ pub fn main() !void {
                     );
                     board.doMove(move);
                     player = -player;
-                    printBoard(board, innerUserMove, player);
                 }
             } else {
                 // AI
@@ -159,6 +160,7 @@ pub fn main() !void {
             var legalMoves2 = StaticList(64, Board.Move).init();
             try board.getLegalMoves(player, &legalMoves2);
             if (legalMoves2.length == 0) {
+                printBoard(board, markedPosition, player);
                 std.debug.print("  Game Over\n\n", .{});
                 break;
             }
