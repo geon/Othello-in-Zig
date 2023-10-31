@@ -24,20 +24,20 @@ fn printBoard(
 
     std.debug.print("\n  Player: ", .{});
     if (player == 1) {
-        std.debug.print("X", .{});
+        std.debug.print("⚫️", .{});
     } else {
-        std.debug.print("O", .{});
+        std.debug.print("⚪️", .{});
     }
-    std.debug.print("   X:{d} O:{d}", .{ pl1Count, pl2Count });
+    std.debug.print("   ⚫️:{d} ⚪️:{d}", .{ pl1Count, pl2Count });
 
     std.debug.print("\n  +---+---+---+---+---+---+---+---+\n", .{});
     for (0..8) |y| {
         std.debug.print("  |", .{});
         for (0..8) |x| {
             if (board.cells[x + y * 8] == 1) {
-                std.debug.print(" X |", .{});
+                std.debug.print(" ⚫️|", .{});
             } else if (board.cells[x + y * 8] == -1) {
-                std.debug.print(" O |", .{});
+                std.debug.print(" ⚪️|", .{});
             } else {
                 std.debug.print("   |", .{});
             }
