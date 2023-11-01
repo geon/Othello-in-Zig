@@ -117,7 +117,11 @@ pub fn main() !void {
     while (true) {
         printBoard(match.board, markedPosition, match.player);
 
-        if (match.legalMoves.length > 0) {
+        if (match.legalMoves.length == 0) {
+            printBoard(match.board, markedPosition, match.player);
+            std.debug.print("  Game Over\n\n", .{});
+            break;
+        } else {
             const move: ?Board.Move = if (match.player == 1)
                 // User input.
                 try getUserMove(match.board, match.player, markedPosition, match.legalMoves)
@@ -131,10 +135,6 @@ pub fn main() !void {
             } else {
                 break;
             }
-        } else {
-            printBoard(match.board, markedPosition, match.player);
-            std.debug.print("  Game Over\n\n", .{});
-            break;
         }
     }
 }
