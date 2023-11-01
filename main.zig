@@ -71,7 +71,7 @@ fn getUserMove(
     player: i8,
     initialMarkedPosition: Coord,
     legalMoves: StaticList(64, Board.Move),
-) !?Coord {
+) !?Board.Move {
     _ = legalMoves;
     var markedPosition = initialMarkedPosition;
 
@@ -98,7 +98,7 @@ fn getUserMove(
             var move: Board.Move = undefined;
             var legal = try Board.Move.init(&move, board, markedPosition, player);
             if (legal) {
-                return markedPosition;
+                return move;
             }
         }
 
@@ -120,39 +120,21 @@ pub fn main() !void {
         printBoard(match.board, markedPosition, matchState.player);
 
         if (matchState.legalMoves.length > 0) {
-            var move: Board.Move = undefined;
+            var move: ?Board.Move = undefined;
             if (matchState.player == 1) {
                 // User input.
-                // TODO: Return a move instead of a coord.
-                const coord = try getUserMove(match.board, matchState.player, markedPosition, matchState.legalMoves);
-                if (coord) |validCoord| {
-                    _ = try Board.Move.init(
-                        &move,
-                        match.board,
-                        validCoord,
-                        matchState.player,
-                    );
-                } else {
-                    break;
-                }
+                move = try getUserMove(match.board, matchState.player, markedPosition, matchState.legalMoves);
             } else {
                 // AI
-                // TODO: Return a move instead of a coord.
-                const coord = try match.board.getBestMove(matchState.player);
-                if (coord) |validCoord| {
-                    _ = try Board.Move.init(
-                        &move,
-                        match.board,
-                        validCoord,
-                        matchState.player,
-                    );
-                } else {
-                    break;
-                }
+                move = try match.board.getBestMove(matchState.player);
             }
 
-            matchState = try match.doMove(move);
-            markedPosition = move.position;
+            if (move) |validMove| {
+                matchState = try match.doMove(validMove);
+                markedPosition = validMove.position;
+            } else {
+                break;
+            }
         } else {
             printBoard(match.board, markedPosition, matchState.player);
             std.debug.print("  Game Over\n\n", .{});

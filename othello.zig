@@ -221,7 +221,7 @@ pub const Board = struct {
     pub fn getBestMove(
         board: *Board,
         player: Player,
-    ) !?Coord {
+    ) !?Board.Move {
         var legalMoves = StaticList(64, Board.Move).init();
         try board.getLegalMoves(player, &legalMoves);
 
@@ -230,7 +230,7 @@ pub const Board = struct {
         }
 
         var bestScore: i32 = std.math.minInt(i32);
-        var bestMove = legalMoves.items[0].position;
+        var bestMove = legalMoves.items[0];
 
         for (legalMoves.items[0..legalMoves.length]) |move| {
             board.doMove(move);
@@ -239,7 +239,7 @@ pub const Board = struct {
 
             if (score > bestScore) {
                 bestScore = score;
-                bestMove = move.position;
+                bestMove = move;
             }
 
             board.undoMove(move);
