@@ -61,7 +61,7 @@ pub const Board = struct {
         // 4 possible axies (left/right is shared) and max 6 flipped pieces in each (8 pieces across minus one added piece and at least one end-piece) .
         flips: StaticList(4 * 6, Coord),
 
-        fn flipRow(move: *Move, board: Board, offSet: Coord) !bool {
+        fn flipRow(move: *Move, board: Board, offSet: Coord) !void {
             const originalLength = move.flips.length;
             var currentPosition = move.position;
             var cell: i8 = 0;
@@ -70,7 +70,7 @@ pub const Board = struct {
                 if (!stepIsLegal(currentPosition, offSet)) {
                     // Failed to find a complete row, so undo the flipping.
                     try move.flips.shrink(originalLength);
-                    return false;
+                    return;
                 }
 
                 currentPosition = Coord.add(currentPosition, offSet);
@@ -80,12 +80,12 @@ pub const Board = struct {
                 if (cell != -move.player) {
                     if (numFlips > 0 and cell == move.player) {
                         // We have found a comlete row.
-                        return true;
+                        return;
                     }
 
                     // Failed to find a complete row, so undo the flipping.
                     try move.flips.shrink(originalLength);
-                    return false;
+                    return;
                 }
 
                 // Flip pieces optimistically.
@@ -111,7 +111,7 @@ pub const Board = struct {
 
             // Try flipping in every direction.
             for (offSets) |offSet| {
-                _ = try move.flipRow(board, offSet);
+                try move.flipRow(board, offSet);
             }
 
             // If a row is found in any direction, this move is legal.
@@ -300,8 +300,8 @@ test "flipRow" {
         .flips = undefined,
     };
     move.flips.initExisting();
+    try move.flipRow(board, Coord{ .x = 1, .y = 0 });
 
-    try expect(try move.flipRow(board, Coord{ .x = 1, .y = 0 }));
     try expect(1 == move.flips.length);
     try expect(Coord.equal(move.flips.items[0], Coord{ .x = 3, .y = 3 }));
 }
