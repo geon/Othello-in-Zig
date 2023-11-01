@@ -277,6 +277,10 @@ pub const Match = struct {
             try match.board.getLegalMoves(match.player, &legalMoves);
         }
     }
+
+    pub fn isGameOver(match: *Match) bool {
+        return match.legalMoves.length == 0;
+    }
 };
 
 const expect = @import("std").testing.expect;

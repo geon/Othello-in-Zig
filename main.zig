@@ -117,7 +117,7 @@ pub fn main() !void {
     while (true) {
         printBoard(match.board, markedPosition, match.player);
 
-        if (match.legalMoves.length == 0) {
+        if (match.isGameOver()) {
             std.debug.print("  Game Over\n\n", .{});
             break;
         } else {
