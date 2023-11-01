@@ -95,19 +95,21 @@ pub const Board = struct {
         }
 
         pub fn init(
-            move: *Move,
             board: Board,
             position: Coord,
             player: Player,
-        ) !bool {
+        ) !?Move {
+
             // We may only put pieces in empty squares.
             if (0 != board.cells[@as(u8, @intCast(Coord.toIndex(position)))]) {
-                return false;
+                return null;
             }
 
-            move.position = position;
-            move.player = player;
-            move.flips.initExisting();
+            var move = Move{
+                .position = position,
+                .player = player,
+                .flips = StaticList(4 * 6, Coord).init(),
+            };
 
             // Try flipping in every direction.
             for (offSets) |offSet| {
@@ -115,7 +117,7 @@ pub const Board = struct {
             }
 
             // If a row is found in any direction, this move is legal.
-            return move.flips.length > 0;
+            return if (move.flips.length > 0) move else null;
         }
     };
 
@@ -130,10 +132,10 @@ pub const Board = struct {
         // Loop through all squares to find legal moves and add them to the list.
         for (0..64) |i| {
             const position = Coord.fromIndex(@intCast(i));
-            var move = try legalMoves.add();
-            if (!try move.init(board, position, player)) {
-                // If the move fails to init it is illegal, so remove it.
-                _ = try legalMoves.pop();
+            const move = try Move.init(board, position, player);
+            if (move) |validMove| {
+                var added = try legalMoves.add();
+                added.* = validMove;
             }
         }
     }
@@ -322,10 +324,10 @@ test "getLegalMoves" {
 test "doMove" {
     var board = Board.init();
 
-    var move: Board.Move = undefined;
-    _ = try move.init(board, Coord{ .x = 2, .y = 3 }, 1);
-
-    board.doMove(move);
+    var move = try Board.Move.init(board, Coord{ .x = 2, .y = 3 }, 1);
+    if (move) |validMove| {
+        board.doMove(validMove);
+    }
 
     try expectEqual(@as(i8, 1), board.cells[@as(u8, @intCast((Coord{ .x = 2, .y = 3 }).toIndex()))]);
     try expectEqual(@as(i8, 1), board.cells[@as(u8, @intCast((Coord{ .x = 3, .y = 3 }).toIndex()))]);
@@ -334,11 +336,13 @@ test "doMove" {
 test "undoMove" {
     var board = Board.init();
 
-    var move: Board.Move = undefined;
-    _ = try move.init(board, Coord{ .x = 2, .y = 3 }, 1);
-
-    board.doMove(move);
-    board.undoMove(move);
+    var move = try Board.Move.init(board, Coord{ .x = 2, .y = 3 }, 1);
+    if (move) |validMove| {
+        board.doMove(validMove);
+        board.undoMove(validMove);
+    } else {
+        return error{NoMove}.NoMove;
+    }
 
     try expectEqual(@as(i8, 0), board.cells[@as(u8, @intCast((Coord{ .x = 2, .y = 3 }).toIndex()))]);
     try expectEqual(@as(i8, -1), board.cells[@as(u8, @intCast((Coord{ .x = 3, .y = 3 }).toIndex()))]);

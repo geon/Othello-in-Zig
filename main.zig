@@ -95,10 +95,9 @@ fn getUserMove(
         }
 
         if (key == ' ') {
-            var move: Board.Move = undefined;
-            var legal = try Board.Move.init(&move, board, markedPosition, player);
-            if (legal) {
-                return move;
+            var move = try Board.Move.init(board, markedPosition, player);
+            if (move) |validMove| {
+                return validMove;
             }
         }
 
