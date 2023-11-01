@@ -119,14 +119,12 @@ pub fn main() !void {
         printBoard(match.board, markedPosition, matchState.player);
 
         if (matchState.legalMoves.length > 0) {
-            var move: ?Board.Move = undefined;
-            if (matchState.player == 1) {
+            const move: ?Board.Move = if (matchState.player == 1)
                 // User input.
-                move = try getUserMove(match.board, matchState.player, markedPosition, matchState.legalMoves);
-            } else {
+                try getUserMove(match.board, matchState.player, markedPosition, matchState.legalMoves)
+            else
                 // AI
-                move = try match.board.getBestMove(matchState.player);
-            }
+                try match.board.getBestMove(matchState.player);
 
             if (move) |validMove| {
                 matchState = try match.doMove(validMove);
