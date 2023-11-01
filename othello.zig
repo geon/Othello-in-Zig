@@ -248,26 +248,24 @@ pub const Board = struct {
     }
 };
 
-pub const MatchState = struct {
-    player: Player,
-    legalMoves: StaticList(64, Board.Move),
-};
-
 pub const Match = struct {
     board: Board,
     player: Player,
+    legalMoves: StaticList(64, Board.Move),
 
-    pub fn init() Match {
-        return Match{ .board = Board.init(), .player = 1 };
+    pub fn init() !Match {
+        var match = Match{
+            .board = Board.init(),
+            .player = 1,
+            .legalMoves = StaticList(64, Board.Move).init(),
+        };
+
+        try match.board.getLegalMoves(match.player, &match.legalMoves);
+
+        return match;
     }
 
-    pub fn start(match: *Match) !MatchState {
-        var legalMoves = StaticList(64, Board.Move).init();
-        try match.board.getLegalMoves(match.player, &legalMoves);
-        return MatchState{ .player = match.player, .legalMoves = legalMoves };
-    }
-
-    pub fn doMove(match: *Match, move: Board.Move) !MatchState {
+    pub fn doMove(match: *Match, move: Board.Move) !void {
         match.board.doMove(move);
         match.player = -match.player;
 
@@ -278,8 +276,6 @@ pub const Match = struct {
             match.player = -match.player;
             try match.board.getLegalMoves(match.player, &legalMoves);
         }
-
-        return MatchState{ .player = match.player, .legalMoves = legalMoves };
     }
 };
 

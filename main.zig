@@ -107,33 +107,32 @@ fn getUserMove(
 
 pub fn main() !void {
     var markedPosition: Coord = undefined;
-    var match = Match.init();
-    var matchState = try match.start();
+    var match = try Match.init();
 
     {
         // Reset the marked position initially.
-        markedPosition = matchState.legalMoves.items[1].position;
+        markedPosition = match.legalMoves.items[1].position;
     }
 
     while (true) {
-        printBoard(match.board, markedPosition, matchState.player);
+        printBoard(match.board, markedPosition, match.player);
 
-        if (matchState.legalMoves.length > 0) {
-            const move: ?Board.Move = if (matchState.player == 1)
+        if (match.legalMoves.length > 0) {
+            const move: ?Board.Move = if (match.player == 1)
                 // User input.
-                try getUserMove(match.board, matchState.player, markedPosition, matchState.legalMoves)
+                try getUserMove(match.board, match.player, markedPosition, match.legalMoves)
             else
                 // AI
-                try match.board.getBestMove(matchState.player);
+                try match.board.getBestMove(match.player);
 
             if (move) |validMove| {
-                matchState = try match.doMove(validMove);
+                try match.doMove(validMove);
                 markedPosition = validMove.position;
             } else {
                 break;
             }
         } else {
-            printBoard(match.board, markedPosition, matchState.player);
+            printBoard(match.board, markedPosition, match.player);
             std.debug.print("  Game Over\n\n", .{});
             break;
         }
