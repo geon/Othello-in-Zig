@@ -109,16 +109,13 @@ pub const Board = struct {
             move.player = player;
             move.flips.initExisting();
 
-            var legal = false;
-            // Test every direction.
+            // Try flipping in every direction.
             for (offSets) |offSet| {
-                if (try move.flipRow(board, offSet)) {
-                    // If a row is found in any direction, this move is legal.
-                    legal = true;
-                }
+                _ = try move.flipRow(board, offSet);
             }
 
-            return legal;
+            // If a row is found in any direction, this move is legal.
+            return move.flips.length > 0;
         }
     };
 
