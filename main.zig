@@ -106,13 +106,8 @@ fn getUserMove(
 }
 
 pub fn main() !void {
-    var markedPosition: Coord = undefined;
     var match = try Match.init();
-
-    {
-        // Reset the marked position initially.
-        markedPosition = match.legalMoves.items[1].position;
-    }
+    var markedPosition: Coord = match.legalMoves.items[1].position;
 
     while (true) {
         printBoard(match.board, markedPosition, match.player);
