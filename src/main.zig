@@ -108,8 +108,15 @@ fn getUserMove(
 pub fn main() !void {
     const allocator = std.heap.page_allocator;
 
+    // Find the bot name.
+    var args = std.process.args();
+    _ = args.skip();
+    const botName = args.next();
+    var pathBuffer = [_]u8{undefined} ** 100;
+    const path = try std.fmt.bufPrint(&pathBuffer, "bots/{?s}", .{botName});
+
     // Set up bot IPC.
-    var child = std.ChildProcess.init(&[_][]const u8{"bots/bot"}, allocator);
+    var child = std.ChildProcess.init(&[_][]const u8{path}, allocator);
     child.stdin_behavior = .Pipe;
     child.stdout_behavior = .Pipe;
     child.stderr_behavior = .Pipe;

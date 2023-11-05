@@ -3,7 +3,7 @@ const std = @import("std");
 // Although this function looks imperative, note that its job is to
 // declaratively construct a build graph that will be executed by an external
 // runner.
-pub fn build(b: *std.Build) void {
+pub fn build(b: *std.Build) !void {
     // Standard target options allows the person running `zig build` to choose
     // what target to build for. Here we do not override the defaults, which
     // means any target is allowed, and the default is native. Other options
@@ -49,7 +49,7 @@ pub fn build(b: *std.Build) void {
     // This creates a build step. It will be visible in the `zig build --help` menu,
     // and can be selected like this: `zig build run`
     // This will evaluate the `run` step rather than the default, which is "install".
-    const run_step = b.step("run", "Run the app. Make sure you buid a bot first.");
+    const run_step = b.step("run", "Run the app. zig `build run -- BOT_NAME` Make sure you buid a bot first.");
     run_step.dependOn(&run_cmd.step);
 
     // Creates a step for unit testing. This only builds the test executable
@@ -69,13 +69,32 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_unit_tests.step);
 
     // Build a bot and install it in the bots-folder.
+    var buffer: [100]u8 = undefined;
+    const gitTag = try getGitTag(std.heap.page_allocator, &buffer);
     const bot_exe = b.addExecutable(.{
-        .name = "bot",
+        .name = gitTag,
         .root_source_file = .{ .path = "src/bot.zig" },
         .target = target,
         .optimize = optimize,
     });
     const bot_install_step = b.addInstallArtifact(bot_exe, .{ .dest_dir = .{ .override = .{ .custom = "bots" } } });
-    const bot_step = b.step("bot", "Build a bot. Run with `zig build bot --prefix .` to save the bot in the bots folder.");
+    const bot_step = b.step("bot", "Build a bot. Run with `zig build bot --prefix .` to save the bot in the bots folder. The bot is named after the current git tag.");
     bot_step.dependOn(&bot_install_step.step);
+}
+
+fn getGitTag(allocator: std.mem.Allocator, buffer: []u8) ![]const u8 {
+    var child = std.ChildProcess.init(&[_][]const u8{ "git", "describe", "--tags" }, allocator);
+    child.stdin_behavior = .Pipe;
+    child.stdout_behavior = .Pipe;
+    child.stderr_behavior = .Pipe;
+    try child.spawn();
+    defer {
+        child.stdout.?.close();
+        child.stdout = null;
+        _ = child.wait() catch unreachable;
+    }
+
+    const length = try child.stdout.?.read(buffer);
+
+    return if (length > 1) buffer[0 .. length - 1] else "temp";
 }
