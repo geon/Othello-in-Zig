@@ -106,6 +106,22 @@ fn getUserMove(
 }
 
 pub fn main() !void {
+    const allocator = std.heap.page_allocator;
+
+    // Set up bot IPC.
+    var child = std.ChildProcess.init(&[_][]const u8{"./bot"}, allocator);
+    child.stdin_behavior = .Pipe;
+    child.stdout_behavior = .Pipe;
+    child.stderr_behavior = .Pipe;
+    try child.spawn();
+    defer {
+        child.stdin.?.close();
+        child.stdin = null;
+        child.stdout.?.close();
+        child.stdout = null;
+        _ = child.wait() catch unreachable;
+    }
+
     var match = try Match.init();
     var markedPosition: Coord = match.legalMoves.items[1].position;
 
@@ -121,7 +137,17 @@ pub fn main() !void {
                 try getUserMove(match.board, match.player, markedPosition, match.legalMoves)
             else
                 // AI
-                try match.board.getBestMove(match.player);
+                try ai: {
+                    const childStdin = child.stdin.?.writer();
+                    for (match.board.cells) |cell| {
+                        try childStdin.writeByte(@bitCast(cell));
+                    }
+                    try childStdin.writeByte(@bitCast(match.player));
+
+                    const childStdout = child.stdout.?.reader();
+                    const index = try childStdout.readByte();
+                    break :ai Board.Move.init(match.board, Coord.fromIndex(@bitCast(index)), match.player);
+                };
 
             if (move) |validMove| {
                 try match.doMove(validMove);
