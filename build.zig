@@ -49,7 +49,7 @@ pub fn build(b: *std.Build) void {
     // This creates a build step. It will be visible in the `zig build --help` menu,
     // and can be selected like this: `zig build run`
     // This will evaluate the `run` step rather than the default, which is "install".
-    const run_step = b.step("run", "Run the app");
+    const run_step = b.step("run", "Run the app. Make sure you buid a bot first.");
     run_step.dependOn(&run_cmd.step);
 
     // Creates a step for unit testing. This only builds the test executable
@@ -67,4 +67,15 @@ pub fn build(b: *std.Build) void {
     // running the unit tests.
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_unit_tests.step);
+
+    // Build a bot and install it in the bots-folder.
+    const bot_exe = b.addExecutable(.{
+        .name = "bot",
+        .root_source_file = .{ .path = "src/bot.zig" },
+        .target = target,
+        .optimize = optimize,
+    });
+    const bot_install_step = b.addInstallArtifact(bot_exe, .{ .dest_dir = .{ .override = .{ .custom = "bots" } } });
+    const bot_step = b.step("bot", "Build a bot. Run with `zig build bot --prefix .` to save the bot in the bots folder.");
+    bot_step.dependOn(&bot_install_step.step);
 }
