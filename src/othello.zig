@@ -202,19 +202,25 @@ pub const Board = struct {
         return score;
     }
 
-    fn evaluateBoard(
+    fn evaluateMove(
         board: *Board,
-        player: Player,
+        move: Board.Move,
     ) !i32 {
+        board.doMove(move);
+
         var legalMovesPlayer = StaticList(64, Move).init();
-        try board.getLegalMoves(player, &legalMovesPlayer);
+        try board.getLegalMoves(move.player, &legalMovesPlayer);
 
         var legalMovesOpponent = StaticList(64, Move).init();
-        try board.getLegalMoves(-player, &legalMovesOpponent);
+        try board.getLegalMoves(-move.player, &legalMovesOpponent);
 
-        return (board.heuristicScore(player) +
+        const score = board.heuristicScore(move.player) +
             @as(i32, @intCast(legalMovesPlayer.length)) -
-            @as(i32, @intCast(legalMovesOpponent.length)));
+            @as(i32, @intCast(legalMovesOpponent.length));
+
+        board.undoMove(move);
+
+        return score;
     }
 
     pub fn getBestMove(
@@ -232,16 +238,12 @@ pub const Board = struct {
         var bestMove = legalMoves.items[0];
 
         for (legalMoves.items[0..legalMoves.length]) |move| {
-            board.doMove(move);
-
-            const score = try board.evaluateBoard(player);
+            const score = try board.evaluateMove(move);
 
             if (score > bestScore) {
                 bestScore = score;
                 bestMove = move;
             }
-
-            board.undoMove(move);
         }
 
         return bestMove;
