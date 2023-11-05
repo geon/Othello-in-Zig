@@ -109,7 +109,7 @@ pub fn main() !void {
     const allocator = std.heap.page_allocator;
 
     // Set up bot IPC.
-    var child = std.ChildProcess.init(&[_][]const u8{"./bot"}, allocator);
+    var child = std.ChildProcess.init(&[_][]const u8{"bots/bot"}, allocator);
     child.stdin_behavior = .Pipe;
     child.stdout_behavior = .Pipe;
     child.stderr_behavior = .Pipe;
