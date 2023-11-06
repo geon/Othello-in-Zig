@@ -68,9 +68,7 @@ fn printBoard(
 fn getUserMove(
     board: Board,
     initialMarkedPosition: Coord,
-    legalMoves: Board.MovesList,
 ) !?Board.Move {
-    _ = legalMoves;
     var markedPosition = initialMarkedPosition;
 
     while (true) {
@@ -128,7 +126,7 @@ pub fn main() !void {
     }
 
     var match = Match.init();
-    var markedPosition: Coord = match.legalMoves.items[1].position;
+    var markedPosition: Coord = match.board.legalMoves.items[1].position;
 
     while (true) {
         printBoard(match.board, markedPosition);
@@ -139,7 +137,7 @@ pub fn main() !void {
         } else {
             const move: ?Board.Move = if (match.board.player == 1)
                 // User input.
-                try getUserMove(match.board, markedPosition, match.legalMoves)
+                try getUserMove(match.board, markedPosition)
             else ai: {
                 // AI
                 const childStdin = child.stdin.?.writer();

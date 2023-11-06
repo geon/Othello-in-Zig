@@ -8,9 +8,12 @@ pub const Cell = i8;
 pub const Board = struct {
     cells: [64]Cell,
     player: i8,
+    legalMoves: MovesList,
 
     pub fn initScenario(cells: [64]Cell, player: Player) Board {
-        return Board{ .cells = cells, .player = player };
+        var board = Board{ .cells = cells, .player = player, .legalMoves = undefined };
+        board.legalMoves = board.getLegalMoves(board.player);
+        return board;
     }
 
     pub fn init() Board {
@@ -157,11 +160,12 @@ pub const Board = struct {
 
         // After making a move, it is the opponent's turn.
         board.player = -board.player;
+        board.legalMoves = board.getLegalMoves(board.player);
 
         // If the opponent can't make a move, the turn goes back to the player.
-        const legalMoves = board.getLegalMoves(board.player);
-        if (legalMoves.length < 1) {
+        if (board.legalMoves.length < 1) {
             board.player = -board.player;
+            board.legalMoves = board.getLegalMoves(board.player);
         }
     }
 
@@ -266,26 +270,19 @@ pub const Board = struct {
 
 pub const Match = struct {
     board: Board,
-    legalMoves: Board.MovesList,
 
     pub fn init() Match {
-        var match = Match{
+        return Match{
             .board = Board.init(),
-            .legalMoves = undefined,
         };
-
-        match.legalMoves = match.board.getLegalMoves(match.board.player);
-
-        return match;
     }
 
     pub fn doMove(match: *Match, move: Board.Move) void {
         match.board.doMove(move);
-        match.legalMoves = match.board.getLegalMoves(match.board.player);
     }
 
     pub fn isGameOver(match: *Match) bool {
-        return match.legalMoves.length == 0;
+        return match.board.legalMoves.length == 0;
     }
 };
 
