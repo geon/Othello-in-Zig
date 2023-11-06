@@ -95,7 +95,7 @@ fn getUserMove(
         }
 
         if (key == ' ') {
-            var move = try Board.Move.init(board, markedPosition, player);
+            var move = Board.Move.init(board, markedPosition, player);
             if (move) |validMove| {
                 return validMove;
             }
@@ -129,7 +129,7 @@ pub fn main() !void {
         _ = child.wait() catch unreachable;
     }
 
-    var match = try Match.init();
+    var match = Match.init();
     var markedPosition: Coord = match.legalMoves.items[1].position;
 
     while (true) {
@@ -142,22 +142,21 @@ pub fn main() !void {
             const move: ?Board.Move = if (match.player == 1)
                 // User input.
                 try getUserMove(match.board, match.player, markedPosition, match.legalMoves)
-            else
+            else ai: {
                 // AI
-                try ai: {
-                    const childStdin = child.stdin.?.writer();
-                    for (match.board.cells) |cell| {
-                        try childStdin.writeByte(@bitCast(cell));
-                    }
-                    try childStdin.writeByte(@bitCast(match.player));
+                const childStdin = child.stdin.?.writer();
+                for (match.board.cells) |cell| {
+                    try childStdin.writeByte(@bitCast(cell));
+                }
+                try childStdin.writeByte(@bitCast(match.player));
 
-                    const childStdout = child.stdout.?.reader();
-                    const index = try childStdout.readByte();
-                    break :ai Board.Move.init(match.board, Coord.fromIndex(@bitCast(index)), match.player);
-                };
+                const childStdout = child.stdout.?.reader();
+                const index = try childStdout.readByte();
+                break :ai Board.Move.init(match.board, Coord.fromIndex(@bitCast(index)), match.player);
+            };
 
             if (move) |validMove| {
-                try match.doMove(validMove);
+                match.doMove(validMove);
                 markedPosition = validMove.position;
             } else {
                 break;

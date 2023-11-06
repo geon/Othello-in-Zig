@@ -98,7 +98,7 @@ pub const Board = struct {
             board: Board,
             position: Coord,
             player: Player,
-        ) !?Move {
+        ) ?Move {
 
             // We may only put pieces in empty squares.
             if (0 != board.cells[@as(u8, @intCast(Coord.toIndex(position)))]) {
@@ -113,7 +113,8 @@ pub const Board = struct {
 
             // Try flipping in every direction.
             for (offSets) |offSet| {
-                try move.flipRow(board, offSet);
+                // Shoud never fail since the capacity is the max possible number of flips.
+                move.flipRow(board, offSet) catch unreachable;
             }
 
             // If a row is found in any direction, this move is legal.
@@ -126,15 +127,16 @@ pub const Board = struct {
     pub fn getLegalMoves(
         board: Board,
         player: Player,
-    ) !MovesList {
+    ) MovesList {
         var legalMoves = MovesList.init();
 
         // Loop through all squares to find legal moves and add them to the list.
         for (0..64) |i| {
             const position = Coord.fromIndex(@intCast(i));
-            const move = try Move.init(board, position, player);
+            const move = Move.init(board, position, player);
             if (move) |validMove| {
-                var added = try legalMoves.add();
+                // Shoud never fail since the capacity is the same as the board size.
+                var added = legalMoves.add() catch unreachable;
                 added.* = validMove;
             }
         }
@@ -207,12 +209,12 @@ pub const Board = struct {
     fn evaluateMove(
         board: *Board,
         move: Board.Move,
-    ) !i32 {
+    ) i32 {
         board.doMove(move);
 
-        const legalMovesPlayer = try board.getLegalMoves(move.player);
+        const legalMovesPlayer = board.getLegalMoves(move.player);
 
-        const legalMovesOpponent = try board.getLegalMoves(-move.player);
+        const legalMovesOpponent = board.getLegalMoves(-move.player);
 
         const score = board.heuristicScore(move.player) +
             @as(i32, @intCast(legalMovesPlayer.length)) -
@@ -227,7 +229,7 @@ pub const Board = struct {
         board: *Board,
         player: Player,
     ) !?Board.Move {
-        const legalMoves = try board.getLegalMoves(player);
+        const legalMoves = board.getLegalMoves(player);
 
         if (legalMoves.length == 0) {
             return null;
@@ -237,7 +239,7 @@ pub const Board = struct {
         var bestMove = legalMoves.items[0];
 
         for (legalMoves.items[0..legalMoves.length]) |move| {
-            const score = try board.evaluateMove(move);
+            const score = board.evaluateMove(move);
 
             if (score > bestScore) {
                 bestScore = score;
@@ -254,27 +256,27 @@ pub const Match = struct {
     player: Player,
     legalMoves: Board.MovesList,
 
-    pub fn init() !Match {
+    pub fn init() Match {
         var match = Match{
             .board = Board.init(),
             .player = 1,
             .legalMoves = undefined,
         };
 
-        match.legalMoves = try match.board.getLegalMoves(match.player);
+        match.legalMoves = match.board.getLegalMoves(match.player);
 
         return match;
     }
 
-    pub fn doMove(match: *Match, move: Board.Move) !void {
+    pub fn doMove(match: *Match, move: Board.Move) void {
         match.board.doMove(move);
         match.player = -match.player;
 
-        match.legalMoves = try match.board.getLegalMoves(match.player);
+        match.legalMoves = match.board.getLegalMoves(match.player);
 
         if (match.legalMoves.length < 1) {
             match.player = -match.player;
-            match.legalMoves = try match.board.getLegalMoves(match.player);
+            match.legalMoves = match.board.getLegalMoves(match.player);
         }
     }
 
@@ -311,7 +313,7 @@ test "flipRow" {
 test "getLegalMoves" {
     const board = Board.init();
 
-    const moves = try board.getLegalMoves(1);
+    const moves = board.getLegalMoves(1);
 
     try expectEqual(@as(usize, 4), moves.length);
     try expect(Coord.equal(moves.items[0].position, Coord{ .x = 3, .y = 2 }));
@@ -323,7 +325,7 @@ test "getLegalMoves" {
 test "doMove" {
     var board = Board.init();
 
-    var move = try Board.Move.init(board, Coord{ .x = 2, .y = 3 }, 1);
+    var move = Board.Move.init(board, Coord{ .x = 2, .y = 3 }, 1);
     if (move) |validMove| {
         board.doMove(validMove);
     }
@@ -335,7 +337,7 @@ test "doMove" {
 test "undoMove" {
     var board = Board.init();
 
-    var move = try Board.Move.init(board, Coord{ .x = 2, .y = 3 }, 1);
+    var move = Board.Move.init(board, Coord{ .x = 2, .y = 3 }, 1);
     if (move) |validMove| {
         board.doMove(validMove);
         board.undoMove(validMove);
