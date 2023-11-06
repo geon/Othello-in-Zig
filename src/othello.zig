@@ -270,12 +270,11 @@ pub const Match = struct {
         match.board.doMove(move);
         match.player = -match.player;
 
-        var legalMoves = Board.MovesList.init();
-        try match.board.getLegalMoves(match.player, &legalMoves);
+        try match.board.getLegalMoves(match.player, &match.legalMoves);
 
-        if (legalMoves.length < 1) {
+        if (match.legalMoves.length < 1) {
             match.player = -match.player;
-            try match.board.getLegalMoves(match.player, &legalMoves);
+            try match.board.getLegalMoves(match.player, &match.legalMoves);
         }
     }
 
