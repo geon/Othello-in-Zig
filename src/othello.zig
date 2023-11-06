@@ -128,9 +128,6 @@ pub const Board = struct {
         player: Player,
         legalMoves: *MovesList,
     ) !void {
-        const originalLength = legalMoves.items.len;
-        _ = originalLength;
-
         // Loop through all squares to find legal moves and add them to the list.
         for (0..64) |i| {
             const position = Coord.fromIndex(@intCast(i));
