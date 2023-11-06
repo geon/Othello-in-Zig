@@ -284,20 +284,6 @@ pub const Board = struct {
     }
 };
 
-pub const Match = struct {
-    board: Board,
-
-    pub fn init() Match {
-        return Match{
-            .board = Board.init(),
-        };
-    }
-
-    pub fn doMove(match: *Match, move: Board.Move) void {
-        _ = match.board.doMove(move);
-    }
-};
-
 const expect = @import("std").testing.expect;
 const expectEqual = @import("std").testing.expectEqual;
 

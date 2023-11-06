@@ -1,5 +1,4 @@
 const Othello = @import("othello.zig");
-const Match = Othello.Match;
 const Board = Othello.Board;
 const Cell = Othello.Cell;
 const Coord = @import("coord.zig").Coord;
@@ -125,34 +124,34 @@ pub fn main() !void {
         _ = child.wait() catch unreachable;
     }
 
-    var match = Match.init();
-    var markedPosition: Coord = match.board.legalMoves.items[1].position;
+    var board = Board.init();
+    var markedPosition: Coord = board.legalMoves.items[1].position;
 
     while (true) {
-        printBoard(match.board, markedPosition);
+        printBoard(board, markedPosition);
 
-        if (match.board.gameOver) {
+        if (board.gameOver) {
             std.debug.print("  Game Over\n\n", .{});
             break;
         } else {
-            const move: ?Board.Move = if (match.board.player == 1)
+            const move: ?Board.Move = if (board.player == 1)
                 // User input.
-                try getUserMove(match.board, markedPosition)
+                try getUserMove(board, markedPosition)
             else ai: {
                 // AI
                 const childStdin = child.stdin.?.writer();
-                for (match.board.cells) |cell| {
+                for (board.cells) |cell| {
                     try childStdin.writeByte(@bitCast(cell));
                 }
-                try childStdin.writeByte(@bitCast(match.board.player));
+                try childStdin.writeByte(@bitCast(board.player));
 
                 const childStdout = child.stdout.?.reader();
                 const index = try childStdout.readByte();
-                break :ai Board.Move.init(match.board, Coord.fromIndex(@bitCast(index)), match.board.player);
+                break :ai Board.Move.init(board, Coord.fromIndex(@bitCast(index)), board.player);
             };
 
             if (move) |validMove| {
-                _ = match.doMove(validMove);
+                _ = board.doMove(validMove);
                 markedPosition = validMove.position;
             } else {
                 break;
