@@ -70,7 +70,7 @@ fn getUserMove(
     board: Board,
     player: i8,
     initialMarkedPosition: Coord,
-    legalMoves: StaticList(64, Board.Move),
+    legalMoves: Board.MovesList,
 ) !?Board.Move {
     _ = legalMoves;
     var markedPosition = initialMarkedPosition;

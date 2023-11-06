@@ -121,10 +121,12 @@ pub const Board = struct {
         }
     };
 
+    pub const MovesList = StaticList(64, Board.Move);
+
     pub fn getLegalMoves(
         board: Board,
         player: Player,
-        legalMoves: *StaticList(64, Move),
+        legalMoves: *MovesList,
     ) !void {
         const originalLength = legalMoves.items.len;
         _ = originalLength;
@@ -208,10 +210,10 @@ pub const Board = struct {
     ) !i32 {
         board.doMove(move);
 
-        var legalMovesPlayer = StaticList(64, Move).init();
+        var legalMovesPlayer = MovesList.init();
         try board.getLegalMoves(move.player, &legalMovesPlayer);
 
-        var legalMovesOpponent = StaticList(64, Move).init();
+        var legalMovesOpponent = MovesList.init();
         try board.getLegalMoves(-move.player, &legalMovesOpponent);
 
         const score = board.heuristicScore(move.player) +
@@ -227,7 +229,7 @@ pub const Board = struct {
         board: *Board,
         player: Player,
     ) !?Board.Move {
-        var legalMoves = StaticList(64, Board.Move).init();
+        var legalMoves = Board.MovesList.init();
         try board.getLegalMoves(player, &legalMoves);
 
         if (legalMoves.length == 0) {
@@ -253,13 +255,13 @@ pub const Board = struct {
 pub const Match = struct {
     board: Board,
     player: Player,
-    legalMoves: StaticList(64, Board.Move),
+    legalMoves: Board.MovesList,
 
     pub fn init() !Match {
         var match = Match{
             .board = Board.init(),
             .player = 1,
-            .legalMoves = StaticList(64, Board.Move).init(),
+            .legalMoves = Board.MovesList.init(),
         };
 
         try match.board.getLegalMoves(match.player, &match.legalMoves);
@@ -271,7 +273,7 @@ pub const Match = struct {
         match.board.doMove(move);
         match.player = -match.player;
 
-        var legalMoves = StaticList(64, Board.Move).init();
+        var legalMoves = Board.MovesList.init();
         try match.board.getLegalMoves(match.player, &legalMoves);
 
         if (legalMoves.length < 1) {
@@ -313,7 +315,7 @@ test "flipRow" {
 test "getLegalMoves" {
     const board = Board.init();
 
-    var moves = StaticList(64, Board.Move).init();
+    var moves = Board.MovesList.init();
     try board.getLegalMoves(1, &moves);
 
     try expectEqual(@as(usize, 4), moves.length);
