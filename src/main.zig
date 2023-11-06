@@ -152,7 +152,7 @@ pub fn main() !void {
             };
 
             if (move) |validMove| {
-                match.doMove(validMove);
+                _ = match.doMove(validMove);
                 markedPosition = validMove.position;
             } else {
                 break;

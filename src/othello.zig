@@ -152,7 +152,9 @@ pub const Board = struct {
         return legalMoves;
     }
 
-    pub fn doMove(board: *Board, move: Move) void {
+    pub fn doMove(board: *Board, move: Move) Player {
+        const lastPlayer = board.player;
+
         board.cells[@intCast(move.position.toIndex())] = move.player;
         for (move.flips.items[0..move.flips.length]) |position| {
             board.cells[@intCast(position.toIndex())] = move.player;
@@ -167,13 +169,16 @@ pub const Board = struct {
             board.player = -board.player;
             board.legalMoves = board.getLegalMoves(board.player);
         }
+
+        return lastPlayer;
     }
 
-    fn undoMove(board: *Board, move: Move) void {
+    fn undoMove(board: *Board, move: Move, lastPlayer: Player) void {
         board.cells[@intCast(move.position.toIndex())] = 0;
         for (move.flips.items[0..move.flips.length]) |position| {
             board.cells[@intCast(position.toIndex())] = -move.player;
         }
+        board.player = lastPlayer;
     }
 
     fn pieceBalance(board: Board, player: Player) i32 {
@@ -228,7 +233,7 @@ pub const Board = struct {
         board: *Board,
         move: Board.Move,
     ) i32 {
-        board.doMove(move);
+        const lastPlayer = board.doMove(move);
 
         const legalMovesPlayer = board.getLegalMoves(move.player);
 
@@ -238,7 +243,7 @@ pub const Board = struct {
             @as(i32, @intCast(legalMovesPlayer.length)) -
             @as(i32, @intCast(legalMovesOpponent.length));
 
-        board.undoMove(move);
+        board.undoMove(move, lastPlayer);
 
         return score;
     }
@@ -278,7 +283,7 @@ pub const Match = struct {
     }
 
     pub fn doMove(match: *Match, move: Board.Move) void {
-        match.board.doMove(move);
+        _ = match.board.doMove(move);
     }
 
     pub fn isGameOver(match: *Match) bool {
@@ -328,7 +333,7 @@ test "doMove" {
 
     var move = Board.Move.init(board, Coord{ .x = 2, .y = 3 }, 1);
     if (move) |validMove| {
-        board.doMove(validMove);
+        _ = board.doMove(validMove);
     }
 
     try expectEqual(@as(i8, 1), board.cells[@as(u8, @intCast((Coord{ .x = 2, .y = 3 }).toIndex()))]);
@@ -340,8 +345,8 @@ test "undoMove" {
 
     var move = Board.Move.init(board, Coord{ .x = 2, .y = 3 }, 1);
     if (move) |validMove| {
-        board.doMove(validMove);
-        board.undoMove(validMove);
+        const lastPlayer = board.doMove(validMove);
+        board.undoMove(validMove, lastPlayer);
     } else {
         return error{NoMove}.NoMove;
     }
