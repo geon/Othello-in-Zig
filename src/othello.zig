@@ -9,9 +9,15 @@ pub const Board = struct {
     cells: [64]Cell,
     player: i8,
     legalMoves: MovesList,
+    gameOver: bool,
 
     pub fn initScenario(cells: [64]Cell, player: Player) Board {
-        var board = Board{ .cells = cells, .player = player, .legalMoves = undefined };
+        var board = Board{
+            .cells = cells,
+            .player = player,
+            .legalMoves = undefined,
+            .gameOver = false,
+        };
         board.legalMoves = board.getLegalMoves(board.player);
         return board;
     }
@@ -168,6 +174,11 @@ pub const Board = struct {
         if (board.legalMoves.length < 1) {
             board.player = -board.player;
             board.legalMoves = board.getLegalMoves(board.player);
+
+            // If neither player can move, the game is over.
+            if (board.legalMoves.length < 1) {
+                board.gameOver = true;
+            }
         }
 
         return lastPlayer;
@@ -179,6 +190,7 @@ pub const Board = struct {
             board.cells[@intCast(position.toIndex())] = -move.player;
         }
         board.player = lastPlayer;
+        board.gameOver = false;
     }
 
     fn pieceBalance(board: Board, player: Player) i32 {
@@ -284,10 +296,6 @@ pub const Match = struct {
 
     pub fn doMove(match: *Match, move: Board.Move) void {
         _ = match.board.doMove(move);
-    }
-
-    pub fn isGameOver(match: *Match) bool {
-        return match.board.legalMoves.length == 0;
     }
 };
 
