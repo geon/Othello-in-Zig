@@ -191,6 +191,7 @@ pub const Board = struct {
         }
         board.player = lastPlayer;
         board.gameOver = false;
+        board.legalMoves = board.getLegalMoves(board.player);
     }
 
     fn pieceBalance(board: Board, player: Player) i32 {
@@ -263,16 +264,14 @@ pub const Board = struct {
     pub fn getBestMove(
         board: *Board,
     ) !?Board.Move {
-        const legalMoves = board.getLegalMoves(board.player);
-
-        if (legalMoves.length == 0) {
+        if (board.legalMoves.length == 0) {
             return null;
         }
 
         var bestScore: i32 = std.math.minInt(i32);
-        var bestMove = legalMoves.items[0];
+        var bestMove = board.legalMoves.items[0];
 
-        for (legalMoves.items[0..legalMoves.length]) |move| {
+        for (board.legalMoves.items[0..board.legalMoves.length]) |move| {
             const score = board.evaluateMove(move);
 
             if (score > bestScore) {
