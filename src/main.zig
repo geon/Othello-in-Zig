@@ -11,7 +11,6 @@ const stdin = std.io.getStdIn().reader();
 fn printBoard(
     board: Board,
     markedPosition: Coord,
-    player: i8,
 ) void {
     var pl1Count: i8 = 0;
     var pl2Count: i8 = 0;
@@ -24,7 +23,7 @@ fn printBoard(
     }
 
     std.debug.print("\n  Player: ", .{});
-    if (player == 1) {
+    if (board.player == 1) {
         std.debug.print("⚫️", .{});
     } else {
         std.debug.print("⚪️", .{});
@@ -68,7 +67,6 @@ fn printBoard(
 // Let the user pick a move. Returns null if he/she wants to quit.
 fn getUserMove(
     board: Board,
-    player: i8,
     initialMarkedPosition: Coord,
     legalMoves: Board.MovesList,
 ) !?Board.Move {
@@ -95,13 +93,13 @@ fn getUserMove(
         }
 
         if (key == ' ') {
-            var move = Board.Move.init(board, markedPosition, player);
+            var move = Board.Move.init(board, markedPosition, board.player);
             if (move) |validMove| {
                 return validMove;
             }
         }
 
-        printBoard(board, markedPosition, player);
+        printBoard(board, markedPosition);
     }
 }
 
@@ -133,26 +131,26 @@ pub fn main() !void {
     var markedPosition: Coord = match.legalMoves.items[1].position;
 
     while (true) {
-        printBoard(match.board, markedPosition, match.player);
+        printBoard(match.board, markedPosition);
 
         if (match.isGameOver()) {
             std.debug.print("  Game Over\n\n", .{});
             break;
         } else {
-            const move: ?Board.Move = if (match.player == 1)
+            const move: ?Board.Move = if (match.board.player == 1)
                 // User input.
-                try getUserMove(match.board, match.player, markedPosition, match.legalMoves)
+                try getUserMove(match.board, markedPosition, match.legalMoves)
             else ai: {
                 // AI
                 const childStdin = child.stdin.?.writer();
                 for (match.board.cells) |cell| {
                     try childStdin.writeByte(@bitCast(cell));
                 }
-                try childStdin.writeByte(@bitCast(match.player));
+                try childStdin.writeByte(@bitCast(match.board.player));
 
                 const childStdout = child.stdout.?.reader();
                 const index = try childStdout.readByte();
-                break :ai Board.Move.init(match.board, Coord.fromIndex(@bitCast(index)), match.player);
+                break :ai Board.Move.init(match.board, Coord.fromIndex(@bitCast(index)), match.board.player);
             };
 
             if (move) |validMove| {

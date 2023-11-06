@@ -20,10 +20,10 @@ pub fn main() !void {
             break :readPlayer @as(i8, @bitCast(byte));
         };
 
-        var board = Board.initScenario(cells);
+        var board = Board.initScenario(cells, player);
 
         // AI
-        const move = try board.getBestMove(player);
+        const move = try board.getBestMove();
 
         if (move) |validMove| {
             // Send the move coord index back.

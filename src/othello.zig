@@ -7,9 +7,10 @@ pub const Cell = i8;
 
 pub const Board = struct {
     cells: [64]Cell,
+    player: i8,
 
-    pub fn initScenario(cells: [64]Cell) Board {
-        return Board{ .cells = cells };
+    pub fn initScenario(cells: [64]Cell, player: Player) Board {
+        return Board{ .cells = cells, .player = player };
     }
 
     pub fn init() Board {
@@ -22,7 +23,7 @@ pub const Board = struct {
             0, 0, 0, 0,  0,  0, 0, 0,
             0, 0, 0, 0,  0,  0, 0, 0,
             0, 0, 0, 0,  0,  0, 0, 0,
-        });
+        }, 1);
     }
 
     pub fn stepIsLegal(position: Coord, offSet: Coord) bool {
@@ -153,6 +154,15 @@ pub const Board = struct {
         for (move.flips.items[0..move.flips.length]) |position| {
             board.cells[@intCast(position.toIndex())] = move.player;
         }
+
+        // After making a move, it is the opponent's turn.
+        board.player = -board.player;
+
+        // If the opponent can't make a move, the turn goes back to the player.
+        const legalMoves = board.getLegalMoves(board.player);
+        if (legalMoves.length < 1) {
+            board.player = -board.player;
+        }
     }
 
     fn undoMove(board: *Board, move: Move) void {
@@ -231,9 +241,8 @@ pub const Board = struct {
 
     pub fn getBestMove(
         board: *Board,
-        player: Player,
     ) !?Board.Move {
-        const legalMoves = board.getLegalMoves(player);
+        const legalMoves = board.getLegalMoves(board.player);
 
         if (legalMoves.length == 0) {
             return null;
@@ -257,31 +266,22 @@ pub const Board = struct {
 
 pub const Match = struct {
     board: Board,
-    player: Player,
     legalMoves: Board.MovesList,
 
     pub fn init() Match {
         var match = Match{
             .board = Board.init(),
-            .player = 1,
             .legalMoves = undefined,
         };
 
-        match.legalMoves = match.board.getLegalMoves(match.player);
+        match.legalMoves = match.board.getLegalMoves(match.board.player);
 
         return match;
     }
 
     pub fn doMove(match: *Match, move: Board.Move) void {
         match.board.doMove(move);
-        match.player = -match.player;
-
-        match.legalMoves = match.board.getLegalMoves(match.player);
-
-        if (match.legalMoves.length < 1) {
-            match.player = -match.player;
-            match.legalMoves = match.board.getLegalMoves(match.player);
-        }
+        match.legalMoves = match.board.getLegalMoves(match.board.player);
     }
 
     pub fn isGameOver(match: *Match) bool {
@@ -363,7 +363,7 @@ test "pieceBalance" {
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0,
-    }).pieceBalance(1));
+    }, 1).pieceBalance(1));
 
     try expectEqual(@as(i32, 64), Board.initScenario([64]Cell{
         1, 1, 1, 1, 1, 1, 1, 1,
@@ -374,7 +374,7 @@ test "pieceBalance" {
         1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1,
-    }).pieceBalance(1));
+    }, 1).pieceBalance(1));
 
     try expectEqual(@as(i32, -64), Board.initScenario([64]Cell{
         1, 1, 1, 1, 1, 1, 1, 1,
@@ -385,7 +385,7 @@ test "pieceBalance" {
         1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1,
-    }).pieceBalance(-1));
+    }, 1).pieceBalance(-1));
 }
 
 test "heuristicScore" {
@@ -398,7 +398,7 @@ test "heuristicScore" {
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0,
-    }).heuristicScore(1));
+    }, 1).heuristicScore(1));
 
     try expectEqual(@as(i32, 92), Board.initScenario([64]Cell{
         1, 1, 1, 1, 1, 1, 1, 1,
@@ -409,7 +409,7 @@ test "heuristicScore" {
         1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1,
-    }).heuristicScore(1));
+    }, 1).heuristicScore(1));
 }
 
 test "getBestScore" {
