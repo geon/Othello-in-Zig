@@ -7,10 +7,9 @@ const stdout = std.io.getStdOut().writer();
 
 pub fn main() !void {
     while (true) {
-        var board = Board.init();
-
         // Read board and player from stdin.
-        for (&board.cells) |*cell| {
+        var cells: [64]i8 = undefined;
+        for (&cells) |*cell| {
             cell.* = readCell: {
                 const byte = try stdin.readByte();
                 break :readCell @bitCast(byte);
@@ -20,6 +19,8 @@ pub fn main() !void {
             const byte = try stdin.readByte();
             break :readPlayer @as(i8, @bitCast(byte));
         };
+
+        var board = Board.initScenario(cells);
 
         // AI
         const move = try board.getBestMove(player);

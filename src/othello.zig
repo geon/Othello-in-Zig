@@ -8,8 +8,12 @@ pub const Cell = i8;
 pub const Board = struct {
     cells: [64]Cell,
 
+    pub fn initScenario(cells: [64]Cell) Board {
+        return Board{ .cells = cells };
+    }
+
     pub fn init() Board {
-        return Board{ .cells = [64]Cell{
+        return Board.initScenario([64]Cell{
             0, 0, 0, 0,  0,  0, 0, 0,
             0, 0, 0, 0,  0,  0, 0, 0,
             0, 0, 0, 0,  0,  0, 0, 0,
@@ -18,7 +22,7 @@ pub const Board = struct {
             0, 0, 0, 0,  0,  0, 0, 0,
             0, 0, 0, 0,  0,  0, 0, 0,
             0, 0, 0, 0,  0,  0, 0, 0,
-        } };
+        });
     }
 
     pub fn stepIsLegal(position: Coord, offSet: Coord) bool {
@@ -350,7 +354,7 @@ test "undoMove" {
 }
 
 test "pieceBalance" {
-    try expectEqual(@as(i32, 0), (Board{ .cells = [64]Cell{
+    try expectEqual(@as(i32, 0), Board.initScenario([64]Cell{
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0,
@@ -359,9 +363,9 @@ test "pieceBalance" {
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0,
-    } }).pieceBalance(1));
+    }).pieceBalance(1));
 
-    try expectEqual(@as(i32, 64), (Board{ .cells = [64]Cell{
+    try expectEqual(@as(i32, 64), Board.initScenario([64]Cell{
         1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1,
@@ -370,9 +374,9 @@ test "pieceBalance" {
         1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1,
-    } }).pieceBalance(1));
+    }).pieceBalance(1));
 
-    try expectEqual(@as(i32, -64), (Board{ .cells = [64]Cell{
+    try expectEqual(@as(i32, -64), Board.initScenario([64]Cell{
         1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1,
@@ -381,11 +385,11 @@ test "pieceBalance" {
         1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1,
-    } }).pieceBalance(-1));
+    }).pieceBalance(-1));
 }
 
 test "heuristicScore" {
-    try expectEqual(@as(i32, 0), (Board{ .cells = [64]Cell{
+    try expectEqual(@as(i32, 0), Board.initScenario([64]Cell{
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0,
@@ -394,9 +398,9 @@ test "heuristicScore" {
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0,
-    } }).heuristicScore(1));
+    }).heuristicScore(1));
 
-    try expectEqual(@as(i32, 92), (Board{ .cells = [64]Cell{
+    try expectEqual(@as(i32, 92), Board.initScenario([64]Cell{
         1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1,
@@ -405,7 +409,7 @@ test "heuristicScore" {
         1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1,
-    } }).heuristicScore(1));
+    }).heuristicScore(1));
 }
 
 test "getBestScore" {
