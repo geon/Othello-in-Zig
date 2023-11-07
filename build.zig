@@ -80,6 +80,17 @@ pub fn build(b: *std.Build) !void {
     const bot_install_step = b.addInstallArtifact(bot_exe, .{ .dest_dir = .{ .override = .{ .custom = "bots" } } });
     const bot_step = b.step("bot", "Build a bot. Run with `zig build bot --prefix .` to save the bot in the bots folder. The bot is named after the current git tag.");
     bot_step.dependOn(&bot_install_step.step);
+
+    // Run the UI as a monolith.
+    const run_monolith_exe = b.addExecutable(.{
+        .name = "monolith",
+        .root_source_file = .{ .path = "src/monolith.zig" },
+        .target = target,
+        .optimize = optimize,
+    });
+    const run_monolith_cmd = b.addRunArtifact(run_monolith_exe);
+    const run_monolith_step = b.step("run-monolith", "Run the app as a monolith. Gives better error messages.");
+    run_monolith_step.dependOn(&run_monolith_cmd.step);
 }
 
 fn getGitTag(allocator: std.mem.Allocator, buffer: []u8) ![]const u8 {
