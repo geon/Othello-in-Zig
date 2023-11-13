@@ -331,6 +331,7 @@ test "doMove" {
 
     try expectEqual(@as(i8, 1), board.cells[@as(u8, @intCast((Coord{ .x = 2, .y = 3 }).toIndex()))]);
     try expectEqual(@as(i8, 1), board.cells[@as(u8, @intCast((Coord{ .x = 3, .y = 3 }).toIndex()))]);
+    try expectEqual(@as(i8, -1), board.player);
 }
 
 test "undoMove" {
@@ -346,6 +347,7 @@ test "undoMove" {
 
     try expectEqual(@as(i8, 0), board.cells[@as(u8, @intCast((Coord{ .x = 2, .y = 3 }).toIndex()))]);
     try expectEqual(@as(i8, -1), board.cells[@as(u8, @intCast((Coord{ .x = 3, .y = 3 }).toIndex()))]);
+    try expectEqual(@as(i8, 1), board.player);
 }
 
 test "pieceBalance" {
