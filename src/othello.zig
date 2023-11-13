@@ -35,6 +35,33 @@ pub const Board = struct {
         }, 1);
     }
 
+    pub fn equal(a: Board, b: Board) bool {
+        for (0..64) |index| {
+            if (a.cells[index] != b.cells[index]) {
+                return false;
+            }
+        }
+
+        if (a.player != b.player) {
+            return false;
+        }
+
+        if (a.legalMoves.length != b.legalMoves.length) {
+            return false;
+        }
+        for (0..a.legalMoves.length) |index| {
+            if (!Move.equal(a.legalMoves.items[index], b.legalMoves.items[index])) {
+                return false;
+            }
+        }
+
+        if (a.gameOver != b.gameOver) {
+            return false;
+        }
+
+        return true;
+    }
+
     pub fn stepIsLegal(position: Coord, offSet: Coord) bool {
         // Take care of left, ...
         if (position.x == 0 and offSet.x == -1) {
@@ -357,6 +384,16 @@ test "flipRow" {
 
     try expect(1 == move.flips.length);
     try expect(Coord.equal(move.flips.items[0], Coord{ .x = 3, .y = 3 }));
+}
+
+test "board equal" {
+    var a = Board.init();
+    var b = Board.init();
+    var c = Board.init();
+    _ = c.doMove(c.legalMoves.items[0]);
+
+    try expect(Board.equal(a, b));
+    try expect(!Board.equal(a, c));
 }
 
 test "getLegalMoves" {
