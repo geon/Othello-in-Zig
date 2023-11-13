@@ -350,6 +350,24 @@ test "undoMove" {
     try expectEqual(@as(i8, 1), board.player);
 }
 
+test "undoMove twice" {
+    var board = Board.init();
+
+    const move = board.legalMoves.items[0];
+    const lastPlayer = board.doMove(move);
+
+    const move2 = board.legalMoves.items[0];
+    const lastPlayer2 = board.doMove(move2);
+
+    board.undoMove(move2, lastPlayer2);
+
+    board.undoMove(move, lastPlayer);
+
+    try expectEqual(@as(i8, 0), board.cells[@as(u8, @intCast((Coord{ .x = 2, .y = 3 }).toIndex()))]);
+    try expectEqual(@as(i8, -1), board.cells[@as(u8, @intCast((Coord{ .x = 3, .y = 3 }).toIndex()))]);
+    try expectEqual(@as(i8, 1), board.player);
+}
+
 test "pieceBalance" {
     try expectEqual(@as(i32, 0), Board.initScenario([64]Cell{
         0, 0, 0, 0, 0, 0, 0, 0,
