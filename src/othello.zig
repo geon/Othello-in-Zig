@@ -75,6 +75,27 @@ pub const Board = struct {
         // 4 possible axies (left/right is shared) and max 6 flipped pieces in each (8 pieces across minus one added piece and at least one end-piece) .
         flips: StaticList(4 * 6, Coord),
 
+        pub fn equal(a: Move, b: Move) bool {
+            if (!Coord.equal(a.position, b.position)) {
+                return false;
+            }
+
+            if (a.player != b.player) {
+                return false;
+            }
+
+            if (a.flips.length != b.flips.length) {
+                return false;
+            }
+            for (0..a.flips.length) |index| {
+                if (!Coord.equal(a.flips.items[index], b.flips.items[index])) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         fn flipRow(move: *Move, board: Board, offSet: Coord) !void {
             const originalLength = move.flips.length;
             var currentPosition = move.position;
@@ -310,6 +331,17 @@ test "stepIsLegal" {
     try expect(!Board.stepIsLegal(Coord{ .x = 7, .y = 0 }, Coord{ .x = 1, .y = 0 }));
     try expect(!Board.stepIsLegal(Coord{ .x = 0, .y = 0 }, Coord{ .x = 0, .y = -1 }));
     try expect(!Board.stepIsLegal(Coord{ .x = 0, .y = 7 }, Coord{ .x = 0, .y = 1 }));
+}
+
+test "move equal" {
+    const board = Board.init();
+
+    const a = try forceNotNull(Board.Move, Board.Move.init(board, Coord{ .x = 2, .y = 3 }, 1));
+    const b = try forceNotNull(Board.Move, Board.Move.init(board, Coord{ .x = 2, .y = 3 }, 1));
+    const c = try forceNotNull(Board.Move, Board.Move.init(board, Coord{ .x = 3, .y = 2 }, 1));
+
+    try expect(Board.Move.equal(a, b));
+    try expect(!Board.Move.equal(a, c));
 }
 
 test "flipRow" {
