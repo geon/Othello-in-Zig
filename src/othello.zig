@@ -286,6 +286,24 @@ pub const Board = struct {
 
 const expect = @import("std").testing.expect;
 const expectEqual = @import("std").testing.expectEqual;
+const expectError = @import("std").testing.expectError;
+
+const ForceNotNullError = error{ValueIsNull};
+fn forceNotNull(comptime T: type, value: ?T) !T {
+    if (value) |validValue| {
+        return validValue;
+    }
+
+    return ForceNotNullError.ValueIsNull;
+}
+
+test "forceNotNull" {
+    const ok: ?i8 = 123;
+    try expectEqual(@as(i8, 123), try forceNotNull(i8, ok));
+
+    const notOk: ?i8 = undefined;
+    try expectError(ForceNotNullError.ValueIsNull, forceNotNull(i8, notOk));
+}
 
 test "stepIsLegal" {
     try expect(!Board.stepIsLegal(Coord{ .x = 0, .y = 0 }, Coord{ .x = -1, .y = 0 }));
