@@ -25,7 +25,9 @@ pub fn main() !void {
 
             if (move) |validMove| {
                 _ = board.doMove(validMove);
-                markedPosition = validMove.position;
+                if (board.legalMoves.length > 0) {
+                    markedPosition = board.legalMoves.items[0].position;
+                }
             } else {
                 break;
             }
