@@ -280,16 +280,6 @@ pub const Board = struct {
         score: i32,
     };
 
-    fn getBestScore(scoredMoves: []const MoveScore) i32 {
-        var score: i32 = std.math.minInt(i32);
-        for (scoredMoves) |entry| {
-            if (entry.score > score) {
-                score = entry.score;
-            }
-        }
-        return score;
-    }
-
     fn evaluateMove(
         board: *Board,
         move: Board.Move,
@@ -535,13 +525,4 @@ test "legal moves" {
     try expectEqual(@as(usize, 2), board.legalMoves.items[1].flips.length);
     try expectEqual(Coord{ .x = 2, .y = 3 }, board.legalMoves.items[1].flips.items[0]);
     try expectEqual(Coord{ .x = 3, .y = 4 }, board.legalMoves.items[1].flips.items[1]);
-}
-
-test "getBestScore" {
-    const moveScores = [_]Board.MoveScore{
-        Board.MoveScore{ .position = undefined, .score = 1 },
-        Board.MoveScore{ .position = undefined, .score = 3 },
-        Board.MoveScore{ .position = undefined, .score = 2 },
-    };
-    try expectEqual(@as(i32, 3), Board.getBestScore(&moveScores));
 }
