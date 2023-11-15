@@ -285,18 +285,15 @@ pub const Board = struct {
         move: Board.Move,
     ) i32 {
         const lastPlayer = board.doMove(move);
+        defer board.undoMove(move, lastPlayer);
 
         const legalMovesPlayer = board.getLegalMoves(move.player);
 
         const legalMovesOpponent = board.getLegalMoves(-move.player);
 
-        const score = board.heuristicScore(move.player) +
+        return board.heuristicScore(move.player) +
             @as(i32, @intCast(legalMovesPlayer.length)) -
             @as(i32, @intCast(legalMovesOpponent.length));
-
-        board.undoMove(move, lastPlayer);
-
-        return score;
     }
 
     pub fn getBestMove(
