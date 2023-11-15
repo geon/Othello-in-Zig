@@ -523,3 +523,45 @@ test "legal moves" {
     try expectEqual(Coord{ .x = 2, .y = 3 }, board.legalMoves.items[1].flips.items[0]);
     try expectEqual(Coord{ .x = 3, .y = 4 }, board.legalMoves.items[1].flips.items[1]);
 }
+
+test "skip player" {
+    var board = Board.initScenario([64]Cell{
+        1,  0, 0, 0, 0, 0, 0, 1,
+        -1, 0, 0, 0, 0, 0, 0, -1,
+        0,  0, 0, 0, 0, 0, 0, 0,
+        0,  0, 0, 0, 0, 0, 0, 0,
+        0,  0, 0, 0, 0, 0, 0, 0,
+        0,  0, 0, 0, 0, 0, 0, 0,
+        0,  0, 0, 0, 0, 0, 0, 0,
+        0,  0, 0, 0, 0, 0, 0, 0,
+    }, 1);
+
+    try expectEqual(@as(Player, 1), board.player);
+    try expectEqual(@as(usize, 2), board.legalMoves.length);
+
+    const move1 = board.legalMoves.items[0];
+    const undo1 = board.doMove(move1);
+
+    try expectEqual(@as(Player, 1), board.player);
+    try expectEqual(@as(usize, 1), board.legalMoves.length);
+
+    const move2 = board.legalMoves.items[0];
+    const undo2 = board.doMove(move2);
+
+    try expectEqual(true, board.gameOver);
+    try expectEqual(@as(usize, 0), board.legalMoves.length);
+
+    board.undoMove(move2, undo2);
+    board.undoMove(move1, undo1);
+
+    try expect(Board.equal(board, Board.initScenario([64]Cell{
+        1,  0, 0, 0, 0, 0, 0, 1,
+        -1, 0, 0, 0, 0, 0, 0, -1,
+        0,  0, 0, 0, 0, 0, 0, 0,
+        0,  0, 0, 0, 0, 0, 0, 0,
+        0,  0, 0, 0, 0, 0, 0, 0,
+        0,  0, 0, 0, 0, 0, 0, 0,
+        0,  0, 0, 0, 0, 0, 0, 0,
+        0,  0, 0, 0, 0, 0, 0, 0,
+    }, 1)));
+}
