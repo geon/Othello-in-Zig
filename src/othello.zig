@@ -510,6 +510,33 @@ test "heuristicScore" {
     }, 1).heuristicScore(1));
 }
 
+test "legal moves" {
+    var board = Board.initScenario([64]Cell{
+        0, 0, 0,  0,  0,  0, 0, 0,
+        0, 0, 0,  0,  0,  0, 0, 0,
+        0, 0, 1,  -1, 0,  0, 0, 0,
+        0, 0, -1, -1, -1, 0, 0, 0,
+        0, 0, 0,  -1, 1,  0, 0, 0,
+        0, 0, 0,  0,  0,  0, 0, 0,
+        0, 0, 0,  0,  0,  0, 0, 0,
+        0, 0, 0,  0,  0,  0, 0, 0,
+    }, 1);
+
+    try expectEqual(@as(usize, 2), board.legalMoves.length);
+    try expectEqual(Coord{ .x = 4, .y = 2 }, board.legalMoves.items[0].position);
+    try expectEqual(@as(Player, 1), board.legalMoves.items[0].player);
+    try expectEqual(@as(usize, 2), board.legalMoves.items[0].flips.length);
+    try expectEqual(Coord{ .x = 3, .y = 2 }, board.legalMoves.items[0].flips.items[0]);
+    try expectEqual(Coord{ .x = 4, .y = 3 }, board.legalMoves.items[0].flips.items[1]);
+
+    try expectEqual(Coord{ .x = 2, .y = 4 }, board.legalMoves.items[1].position);
+    try expectEqual(@as(Player, 1), board.legalMoves.items[1].player);
+    try expectEqual(@as(Player, 1), board.legalMoves.items[1].player);
+    try expectEqual(@as(usize, 2), board.legalMoves.items[1].flips.length);
+    try expectEqual(Coord{ .x = 2, .y = 3 }, board.legalMoves.items[1].flips.items[0]);
+    try expectEqual(Coord{ .x = 3, .y = 4 }, board.legalMoves.items[1].flips.items[1]);
+}
+
 test "getBestScore" {
     const moveScores = [_]Board.MoveScore{
         Board.MoveScore{ .position = undefined, .score = 1 },
