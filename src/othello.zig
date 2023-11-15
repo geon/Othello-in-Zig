@@ -246,10 +246,10 @@ pub const Board = struct {
         var score: i32 = 0;
 
         for (0..64) |i| {
-            score += player * board.cells[i];
+            score += board.cells[i];
         }
 
-        return score;
+        return player * score;
     }
 
     //  The heuristicScores-values describes how valuable the pieces on these positions are.
