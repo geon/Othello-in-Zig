@@ -287,6 +287,15 @@ pub const Board = struct {
         const lastPlayer = board.doMove(move);
         defer board.undoMove(move, lastPlayer);
 
+        if (board.gameOver) {
+            const balance = board.pieceBalance(board.player);
+            return if (balance > 0)
+                std.math.maxInt(i32)
+            else
+                // Not +std.math.minInt(i32), since that would be one less.
+                -std.math.maxInt(i32);
+        }
+
         const legalMovesPlayer = board.getLegalMoves(move.player);
 
         const legalMovesOpponent = board.getLegalMoves(-move.player);
