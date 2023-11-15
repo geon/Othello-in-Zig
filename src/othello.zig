@@ -161,7 +161,6 @@ pub const Board = struct {
             position: Coord,
             player: Player,
         ) ?Move {
-
             // We may only put pieces in empty squares.
             if (0 != board.cells[@as(u8, @intCast(Coord.toIndex(position)))]) {
                 return null;
@@ -283,6 +282,7 @@ pub const Board = struct {
     fn evaluateMove(
         board: *Board,
         move: Board.Move,
+        depth: u8,
     ) i32 {
         const lastPlayer = board.doMove(move);
         defer board.undoMove(move, lastPlayer);
@@ -294,6 +294,18 @@ pub const Board = struct {
             else
                 // Not +std.math.minInt(i32), since that would be one less.
                 -std.math.maxInt(i32);
+        }
+
+        if (depth > 0) {
+            var maxScore: i32 = std.math.minInt(i32);
+            for (board.legalMoves.items[0..board.legalMoves.length]) |innerMove| {
+                const score = board.evaluateMove(innerMove, depth - 1);
+                if (score > maxScore) {
+                    maxScore = score;
+                }
+            }
+
+            return if (board.player == lastPlayer) maxScore else -maxScore;
         }
 
         const legalMovesPlayer = board.getLegalMoves(move.player);
@@ -316,7 +328,7 @@ pub const Board = struct {
         var bestMove = board.legalMoves.items[0];
 
         for (board.legalMoves.items[0..board.legalMoves.length]) |move| {
-            const score = board.evaluateMove(move);
+            const score = board.evaluateMove(move, 3);
 
             if (score > bestScore) {
                 bestScore = score;
