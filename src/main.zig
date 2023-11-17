@@ -4,6 +4,8 @@ const Cell = Othello.Cell;
 const Coord = @import("coord.zig").Coord;
 const std = @import("std");
 const ui = @import("ui.zig");
+const forceNotNull = @import("force-not-null.zig").forceNotNull;
+const Client = @import("client.zig").Client;
 
 pub fn main() !void {
     const allocator = std.heap.page_allocator;
@@ -15,19 +17,8 @@ pub fn main() !void {
     var pathBuffer = [_]u8{undefined} ** 100;
     const path = try std.fmt.bufPrint(&pathBuffer, "bots/{?s}", .{botName});
 
-    // Set up bot IPC.
-    var child = std.ChildProcess.init(&[_][]const u8{path}, allocator);
-    child.stdin_behavior = .Pipe;
-    child.stdout_behavior = .Pipe;
-    child.stderr_behavior = .Pipe;
-    try child.spawn();
-    defer {
-        child.stdin.?.close();
-        child.stdin = null;
-        child.stdout.?.close();
-        child.stdout = null;
-        _ = child.wait() catch unreachable;
-    }
+    var client = try Client.init(path, allocator);
+    defer client.deinit();
 
     var board = Board.init();
     var markedPosition: Coord = board.legalMoves.items[1].position;
@@ -42,18 +33,9 @@ pub fn main() !void {
             const move: ?Board.Move = if (board.player == 1)
                 // User input.
                 try ui.getUserMove(board, markedPosition)
-            else ai: {
+            else
                 // AI
-                const childStdin = child.stdin.?.writer();
-                for (board.cells) |cell| {
-                    try childStdin.writeByte(@bitCast(cell));
-                }
-                try childStdin.writeByte(@bitCast(board.player));
-
-                const childStdout = child.stdout.?.reader();
-                const index = try childStdout.readByte();
-                break :ai Board.Move.init(board, Coord.fromIndex(@bitCast(index)), board.player);
-            };
+                try client.requestMove(board);
 
             if (move) |validMove| {
                 _ = board.doMove(validMove);
