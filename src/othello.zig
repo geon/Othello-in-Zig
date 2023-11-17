@@ -241,7 +241,7 @@ pub const Board = struct {
         board.legalMoves = board.getLegalMoves(board.player);
     }
 
-    fn pieceBalance(board: Board, player: Player) i32 {
+    pub fn pieceBalance(board: Board, player: Player) i32 {
         var score: i32 = 0;
 
         for (0..64) |i| {

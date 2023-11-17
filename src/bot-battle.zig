@@ -3,9 +3,9 @@ const Board = Othello.Board;
 const Cell = Othello.Cell;
 const Coord = @import("coord.zig").Coord;
 const std = @import("std");
-const ui = @import("ui.zig");
 const forceNotNull = @import("force-not-null.zig").forceNotNull;
 const Client = @import("client.zig").Client;
+const StaticList = @import("static-list.zig").StaticList;
 
 pub fn main() !void {
     const allocator = std.heap.page_allocator;
@@ -20,22 +20,35 @@ pub fn main() !void {
     const pathA = try std.fmt.bufPrint(&pathBufferA, "bots/{?s}", .{botNameA});
     const pathB = try std.fmt.bufPrint(&pathBufferB, "bots/{?s}", .{botNameB});
 
-    std.debug.print("{s} {s}", .{ pathA, pathB });
-
     var clientA = try Client.init(pathA, allocator);
     var clientB = try Client.init(pathB, allocator);
     defer clientA.deinit();
     defer clientB.deinit();
 
-    var board = Board.init();
+    const numMatches = 100;
+    var scores = StaticList(numMatches, i32).init();
 
-    while (true) {
-        if (board.gameOver) {
-            ui.printBoard(board, Coord.fromIndex(0));
-            std.debug.print("  Game Over\n\n", .{});
-            break;
+    for (0..numMatches) |_| {
+        var board = Board.init();
+        while (true) {
+            if (board.gameOver) {
+                try scores.push(board.pieceBalance(1));
+                break;
+            }
+
+            _ = board.doMove(try (if (board.player == 1) clientA else clientB).requestMove(board));
         }
-
-        _ = board.doMove(try (if (board.player == 1) clientA else clientB).requestMove(board));
     }
+
+    var sumScore: f32 = 0;
+    for (scores.items[0..scores.length]) |score| {
+        sumScore += @floatFromInt(score);
+    }
+    const averageScore = sumScore / numMatches;
+    var sumSquaredDeviation: f32 = 0;
+    for (scores.items[0..scores.length]) |score| {
+        sumSquaredDeviation += std.math.pow(f32, @as(f32, @floatFromInt(score)) - averageScore, 2);
+    }
+    const standardDeviation = std.math.sqrt(sumSquaredDeviation / numMatches);
+    std.debug.print("{d} {d}\n", .{ averageScore, standardDeviation });
 }
