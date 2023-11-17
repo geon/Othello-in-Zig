@@ -319,24 +319,30 @@ pub const Board = struct {
 
     pub fn getBestMove(
         board: *Board,
+        prng: *std.rand.Random,
     ) !?Board.Move {
         if (board.legalMoves.length == 0) {
             return null;
         }
 
         var bestScore: i32 = std.math.minInt(i32);
-        var bestMove = board.legalMoves.items[0];
+        var bestMoves = MovesList.init();
 
         for (board.legalMoves.items[0..board.legalMoves.length]) |move| {
             const score = board.evaluateMove(move, 3);
 
+            if (score == bestScore) {
+                try bestMoves.push(move);
+            }
+
             if (score > bestScore) {
                 bestScore = score;
-                bestMove = move;
+                try bestMoves.shrink(0);
+                try bestMoves.push(move);
             }
         }
 
-        return bestMove;
+        return bestMoves.items[prng.uintLessThan(usize, bestMoves.length)];
     }
 };
 

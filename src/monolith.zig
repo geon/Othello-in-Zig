@@ -6,6 +6,11 @@ const std = @import("std");
 const ui = @import("ui.zig");
 
 pub fn main() !void {
+    var seed: u64 = undefined;
+    try std.os.getrandom(std.mem.asBytes(&seed));
+    var prngImplementation = std.rand.DefaultPrng.init(seed);
+    var prng = prngImplementation.random();
+
     var board = Board.init();
     var markedPosition: Coord = board.legalMoves.items[1].position;
 
@@ -21,7 +26,7 @@ pub fn main() !void {
                 try ui.getUserMove(board, markedPosition)
             else
                 // AI
-                try board.getBestMove();
+                try board.getBestMove(&prng);
 
             if (move) |validMove| {
                 _ = board.doMove(validMove);
