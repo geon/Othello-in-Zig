@@ -91,6 +91,20 @@ pub fn build(b: *std.Build) !void {
     const run_monolith_cmd = b.addRunArtifact(run_monolith_exe);
     const run_monolith_step = b.step("run-monolith", "Run the app as a monolith. Gives better error messages.");
     run_monolith_step.dependOn(&run_monolith_cmd.step);
+
+    // Run the bot-battle.
+    const run_bot_battle_exe = b.addExecutable(.{
+        .name = "bot-battle",
+        .root_source_file = .{ .path = "src/bot-battle.zig" },
+        .target = target,
+        .optimize = optimize,
+    });
+    const run_bot_battle_cmd = b.addRunArtifact(run_bot_battle_exe);
+    if (b.args) |args| {
+        run_bot_battle_cmd.addArgs(args);
+    }
+    const run_bot_battle_step = b.step("run-bot-battle", "Run the bot-battle. Specify 2 bot names as CLI arguments.");
+    run_bot_battle_step.dependOn(&run_bot_battle_cmd.step);
 }
 
 fn getGitTag(allocator: std.mem.Allocator, buffer: []u8) ![]const u8 {
