@@ -284,6 +284,7 @@ pub const Board = struct {
         move: Board.Move,
         depth: u8,
     ) i32 {
+        _ = depth;
         const lastPlayer = board.doMove(move);
         defer board.undoMove(move, lastPlayer);
 
@@ -294,18 +295,6 @@ pub const Board = struct {
             else
                 // Not +std.math.minInt(i32), since that would be one less.
                 -std.math.maxInt(i32);
-        }
-
-        if (depth > 0) {
-            var maxScore: i32 = std.math.minInt(i32);
-            for (board.legalMoves.items[0..board.legalMoves.length]) |innerMove| {
-                const score = board.evaluateMove(innerMove, depth - 1);
-                if (score > maxScore) {
-                    maxScore = score;
-                }
-            }
-
-            return if (board.player == lastPlayer) maxScore else -maxScore;
         }
 
         const legalMovesPlayer = board.getLegalMoves(move.player);
