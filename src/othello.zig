@@ -325,24 +325,7 @@ pub const Board = struct {
             return null;
         }
 
-        var bestScore: i32 = std.math.minInt(i32);
-        var bestMoves = MovesList.init();
-
-        for (board.legalMoves.items[0..board.legalMoves.length]) |move| {
-            const score = board.evaluateMove(move, 3);
-
-            if (score == bestScore) {
-                try bestMoves.push(move);
-            }
-
-            if (score > bestScore) {
-                bestScore = score;
-                try bestMoves.shrink(0);
-                try bestMoves.push(move);
-            }
-        }
-
-        return bestMoves.items[prng.uintLessThan(usize, bestMoves.length)];
+        return board.legalMoves.items[prng.uintLessThan(usize, board.legalMoves.length)];
     }
 };
 
