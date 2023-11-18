@@ -35,7 +35,7 @@ pub const Board = struct {
         }, 1);
     }
 
-    pub fn equal(a: Board, b: Board) bool {
+    pub fn equal(a: *Board, b: *Board) bool {
         for (0..64) |index| {
             if (a.cells[index] != b.cells[index]) {
                 return false;
@@ -386,8 +386,8 @@ test "board equal" {
     var c = Board.init();
     _ = c.doMove(c.legalMoves.items[0]);
 
-    try expect(Board.equal(a, b));
-    try expect(!Board.equal(a, c));
+    try expect(Board.equal(&a, &b));
+    try expect(!Board.equal(&a, &c));
 }
 
 test "getLegalMoves" {
@@ -426,7 +426,8 @@ test "undoMove" {
         return error{NoMove}.NoMove;
     }
 
-    try expect(Board.equal(board, Board.init()));
+    var newBoard = Board.init();
+    try expect(Board.equal(&board, &newBoard));
 }
 
 test "undoMove twice" {
@@ -442,7 +443,8 @@ test "undoMove twice" {
 
     board.undoMove(move, lastPlayer);
 
-    try expect(Board.equal(board, Board.init()));
+    var newBoard = Board.init();
+    try expect(Board.equal(&board, &newBoard));
 }
 
 test "pieceBalance" {
@@ -561,7 +563,7 @@ test "skip player" {
     board.undoMove(move2, undo2);
     board.undoMove(move1, undo1);
 
-    try expect(Board.equal(board, Board.initScenario([64]Cell{
+    var newBoard = Board.initScenario([64]Cell{
         1,  0, 0, 0, 0, 0, 0, 1,
         -1, 0, 0, 0, 0, 0, 0, -1,
         0,  0, 0, 0, 0, 0, 0, 0,
@@ -570,5 +572,6 @@ test "skip player" {
         0,  0, 0, 0, 0, 0, 0, 0,
         0,  0, 0, 0, 0, 0, 0, 0,
         0,  0, 0, 0, 0, 0, 0, 0,
-    }, 1)));
+    }, 1);
+    try expect(Board.equal(&board, &newBoard));
 }
