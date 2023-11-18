@@ -50,7 +50,7 @@ pub const Board = struct {
             return false;
         }
         for (0..a.legalMoves.length) |index| {
-            if (!Move.equal(a.legalMoves.items[index], b.legalMoves.items[index])) {
+            if (!Move.equal(&a.legalMoves.items[index], &b.legalMoves.items[index])) {
                 return false;
             }
         }
@@ -102,7 +102,7 @@ pub const Board = struct {
         // 4 possible axies (left/right is shared) and max 6 flipped pieces in each (8 pieces across minus one added piece and at least one end-piece) .
         flips: StaticList(4 * 6, Coord),
 
-        pub fn equal(a: Move, b: Move) bool {
+        pub fn equal(a: *const Move, b: *const Move) bool {
             if (!Coord.equal(a.position, b.position)) {
                 return false;
             }
@@ -363,8 +363,8 @@ test "move equal" {
     const b = try forceNotNull(Board.Move, Board.Move.init(board, Coord{ .x = 2, .y = 3 }, 1));
     const c = try forceNotNull(Board.Move, Board.Move.init(board, Coord{ .x = 3, .y = 2 }, 1));
 
-    try expect(Board.Move.equal(a, b));
-    try expect(!Board.Move.equal(a, c));
+    try expect(Board.Move.equal(&a, &b));
+    try expect(!Board.Move.equal(&a, &c));
 }
 
 test "flipRow" {
