@@ -197,8 +197,7 @@ pub const Board = struct {
             const move = Move.init(board, position, player);
             if (move) |validMove| {
                 // Shoud never fail since the capacity is the same as the board size.
-                var added = legalMoves.add() catch unreachable;
-                added.* = validMove;
+                legalMoves.push(validMove) catch unreachable;
             }
         }
 
