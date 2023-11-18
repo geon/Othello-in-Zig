@@ -11,15 +11,11 @@ pub fn StaticList(comptime capacity: usize, comptime T: type) type {
             overshrink,
         };
 
-        pub fn initExisting(list: *StaticList(capacity, T)) void {
-            list.items = undefined;
-            list.length = 0;
-        }
-
         pub fn init() StaticList(capacity, T) {
-            var list: StaticList(capacity, T) = undefined;
-            list.initExisting();
-            return list;
+            return StaticList(capacity, T){
+                .items = undefined,
+                .length = 0,
+            };
         }
 
         pub fn push(list: *StaticList(capacity, T), value: T) !void {
