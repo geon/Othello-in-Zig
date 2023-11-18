@@ -374,9 +374,8 @@ test "flipRow" {
     var move = Board.Move{
         .position = Coord{ .x = 2, .y = 3 },
         .player = 1,
-        .flips = undefined,
+        .flips = StaticList(4 * 6, Coord).init(),
     };
-    move.flips.initExisting();
     try move.flipRow(board, Coord{ .x = 1, .y = 0 });
 
     try expect(1 == move.flips.length);
