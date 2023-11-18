@@ -371,12 +371,11 @@ test "move equal" {
 test "flipRow" {
     const board = Board.init();
 
-    var move = Board.Move{
-        .position = Coord{ .x = 2, .y = 3 },
-        .player = 1,
-        .flips = StaticList(4 * 6, Coord).init(),
-    };
-    try move.flipRow(board, Coord{ .x = 1, .y = 0 });
+    var move = try forceNotNull(Board.Move, Board.Move.init(
+        board,
+        Coord{ .x = 2, .y = 3 },
+        1,
+    ));
 
     try expect(1 == move.flips.length);
     try expect(Coord.equal(move.flips.items[0], Coord{ .x = 3, .y = 3 }));
