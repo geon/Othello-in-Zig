@@ -49,8 +49,8 @@ pub const Board = struct {
         if (a.legalMoves.length != b.legalMoves.length) {
             return false;
         }
-        for (0..a.legalMoves.length) |index| {
-            if (!Move.equal(&a.legalMoves.items[index], &b.legalMoves.items[index])) {
+        for (a.legalMoves.getSlice(), b.legalMoves.getSlice()) |moveA, moveB| {
+            if (!Move.equal(&moveA, &moveB)) {
                 return false;
             }
         }
@@ -114,8 +114,8 @@ pub const Board = struct {
             if (a.flips.length != b.flips.length) {
                 return false;
             }
-            for (0..a.flips.length) |index| {
-                if (!Coord.equal(a.flips.items[index], b.flips.items[index])) {
+            for (a.flips.getSlice(), b.flips.getSlice()) |flipA, flipB| {
+                if (!Coord.equal(flipA, flipB)) {
                     return false;
                 }
             }
@@ -208,7 +208,7 @@ pub const Board = struct {
         const lastPlayer = board.player;
 
         board.cells[@intCast(move.position.toIndex())] = move.player;
-        for (move.flips.items[0..move.flips.length]) |position| {
+        for (move.flips.getSlice()) |position| {
             board.cells[@intCast(position.toIndex())] = move.player;
         }
 
@@ -232,7 +232,7 @@ pub const Board = struct {
 
     fn undoMove(board: *Board, move: Move, lastPlayer: Player) void {
         board.cells[@intCast(move.position.toIndex())] = 0;
-        for (move.flips.items[0..move.flips.length]) |position| {
+        for (move.flips.getSlice()) |position| {
             board.cells[@intCast(position.toIndex())] = -move.player;
         }
         board.player = lastPlayer;
@@ -297,7 +297,7 @@ pub const Board = struct {
 
         if (depth > 0) {
             var maxScore: i32 = std.math.minInt(i32);
-            for (board.legalMoves.items[0..board.legalMoves.length]) |innerMove| {
+            for (board.legalMoves.getSlice()) |innerMove| {
                 const score = board.evaluateMove(innerMove, depth - 1);
                 if (score > maxScore) {
                     maxScore = score;
@@ -327,7 +327,7 @@ pub const Board = struct {
         var bestScore: i32 = std.math.minInt(i32);
         var bestMoves = MovesList.init();
 
-        for (board.legalMoves.items[0..board.legalMoves.length]) |move| {
+        for (board.legalMoves.getSlice()) |move| {
             const score = board.evaluateMove(move, 3);
 
             if (score == bestScore) {

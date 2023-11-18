@@ -46,7 +46,7 @@ pub fn StaticList(comptime capacity: usize, comptime T: type) type {
             list.length = newLength;
         }
 
-        pub fn getSlice(list: *@This()) []T {
+        pub fn getSlice(list: *const @This()) []const T {
             return list.items[0..list.length];
         }
     };

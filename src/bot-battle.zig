@@ -41,7 +41,7 @@ pub fn main() !void {
     }
 
     var sumScore: f32 = 0;
-    for (scores.items[0..scores.length]) |score| {
+    for (scores.getSlice()) |score| {
         sumScore += @floatFromInt(score);
     }
     const averageScore = sumScore / numMatches;
