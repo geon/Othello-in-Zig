@@ -76,8 +76,7 @@ test "Init StaticList" {
 }
 
 test "Init existing StaticList" {
-    var list: StaticList(2, u8) = undefined;
-    list.initExisting();
+    var list = StaticList(2, u8).init();
     try expect(list.items.len == 2);
 }
 
