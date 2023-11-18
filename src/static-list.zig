@@ -45,11 +45,16 @@ pub fn StaticList(comptime capacity: usize, comptime T: type) type {
 
             list.length = newLength;
         }
+
+        pub fn getSlice(list: *@This()) []T {
+            return list.items[0..list.length];
+        }
     };
 }
 
 const expect = @import("std").testing.expect;
 const expectError = @import("std").testing.expectError;
+const expectEqual = @import("std").testing.expectEqual;
 
 test "Create StaticList" {
     const list = StaticList(2, u8){ .items = [_]u8{ 1, 2 }, .length = 2 };
@@ -130,4 +135,14 @@ test "Shrinking the list discards the items at the end." {
     try list.shrink(2);
     try expect(try list.pop() == 2);
     try expect(try list.pop() == 1);
+}
+
+test "getSlice should return a slice with the same length and base address." {
+    var list = StaticList(1, u8).init();
+    var emptySlice = list.getSlice();
+    try expectEqual(emptySlice.ptr, &list.items);
+    try expectEqual(list.length, emptySlice.len);
+    try list.push(0);
+    var fullSlice = list.getSlice();
+    try expectEqual(list.length, fullSlice.len);
 }
