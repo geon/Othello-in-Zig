@@ -11,14 +11,14 @@ pub fn StaticList(comptime capacity: usize, comptime T: type) type {
             overshrink,
         };
 
-        pub fn init() StaticList(capacity, T) {
-            return StaticList(capacity, T){
+        pub fn init() @This() {
+            return @This(){
                 .items = undefined,
                 .length = 0,
             };
         }
 
-        pub fn push(list: *StaticList(capacity, T), value: T) !void {
+        pub fn push(list: *@This(), value: T) !void {
             if (list.length == list.items.len) {
                 return Error.overpush;
             }
@@ -28,7 +28,7 @@ pub fn StaticList(comptime capacity: usize, comptime T: type) type {
             list.length += 1;
         }
 
-        pub fn add(list: *StaticList(capacity, T)) !*T {
+        pub fn add(list: *@This()) !*T {
             if (list.length == list.items.len) {
                 return Error.overpush;
             }
@@ -38,7 +38,7 @@ pub fn StaticList(comptime capacity: usize, comptime T: type) type {
             return item;
         }
 
-        pub fn pop(list: *StaticList(capacity, T)) !T {
+        pub fn pop(list: *@This()) !T {
             if (list.length <= 0) {
                 return Error.underpop;
             }
@@ -48,7 +48,7 @@ pub fn StaticList(comptime capacity: usize, comptime T: type) type {
             return list.items[list.length];
         }
 
-        pub fn shrink(list: *StaticList(capacity, T), newLength: usize) !void {
+        pub fn shrink(list: *@This(), newLength: usize) !void {
             if (newLength > list.length) {
                 return Error.overshrink;
             }
