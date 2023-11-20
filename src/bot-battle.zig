@@ -7,14 +7,27 @@ const forceNotNull = @import("force-not-null.zig").forceNotNull;
 const Client = @import("client.zig").Client;
 const StaticList = @import("static-list.zig").StaticList;
 
+fn compareStrings(_: void, lhs: []const u8, rhs: []const u8) bool {
+    return std.mem.order(u8, lhs, rhs).compare(std.math.CompareOperator.lt);
+}
+
 pub fn main() !void {
     const allocator = std.heap.page_allocator;
 
     // Find the bot names.
-    var args = std.process.args();
-    _ = args.skip();
-    const botNameA = args.next();
-    const botNameB = args.next();
+    var botsDir = try std.fs.cwd().openIterableDir("bots", .{});
+    defer botsDir.close();
+    var dirIterator = botsDir.iterate();
+    var bots = std.ArrayList([]const u8).init(allocator);
+    while (try dirIterator.next()) |bot| {
+        try bots.append(bot.name);
+    }
+
+    std.sort.insertion([]const u8, bots.items, {}, compareStrings);
+
+    const botNameA = bots.items[0];
+    const botNameB = bots.items[1];
+
     var pathBufferA = [_]u8{undefined} ** 100;
     var pathBufferB = [_]u8{undefined} ** 100;
     const pathA = try std.fmt.bufPrint(&pathBufferA, "bots/{?s}", .{botNameA});
