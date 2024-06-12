@@ -96,11 +96,13 @@ pub const Board = struct {
         Coord{ .x = 1, .y = 1 },
     };
 
+    const FlipList = StaticList(4 * 6, Coord);
+
     pub const Move = struct {
         position: Coord,
         player: Player,
         // 4 possible axies (left/right is shared) and max 6 flipped pieces in each (8 pieces across minus one added piece and at least one end-piece) .
-        flips: StaticList(4 * 6, Coord),
+        flips: FlipList,
 
         pub fn equal(a: *const Move, b: *const Move) bool {
             if (!Coord.equal(a.position, b.position)) {
@@ -169,7 +171,7 @@ pub const Board = struct {
             var move = Move{
                 .position = position,
                 .player = player,
-                .flips = StaticList(4 * 6, Coord).init(),
+                .flips = FlipList.init(),
             };
 
             // Try flipping in every direction.
