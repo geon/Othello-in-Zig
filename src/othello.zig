@@ -1,5 +1,4 @@
 const Coord = @import("coord.zig").Coord;
-const StaticList = @import("static-list.zig").StaticList;
 const std = @import("std");
 
 const Player = i8;
@@ -46,10 +45,10 @@ pub const Board = struct {
             return false;
         }
 
-        if (a.legalMoves.length != b.legalMoves.length) {
+        if (a.legalMoves.len != b.legalMoves.len) {
             return false;
         }
-        for (a.legalMoves.getSlice(), b.legalMoves.getSlice()) |moveA, moveB| {
+        for (a.legalMoves.slice(), b.legalMoves.slice()) |moveA, moveB| {
             if (!Move.equal(&moveA, &moveB)) {
                 return false;
             }
@@ -96,7 +95,7 @@ pub const Board = struct {
         Coord{ .x = 1, .y = 1 },
     };
 
-    const FlipList = StaticList(4 * 6, Coord);
+    const FlipList = std.BoundedArray(Coord, 4 * 6);
 
     pub const Move = struct {
         position: Coord,
@@ -113,10 +112,10 @@ pub const Board = struct {
                 return false;
             }
 
-            if (a.flips.length != b.flips.length) {
+            if (a.flips.len != b.flips.len) {
                 return false;
             }
-            for (a.flips.getSlice(), b.flips.getSlice()) |flipA, flipB| {
+            for (a.flips.slice(), b.flips.slice()) |flipA, flipB| {
                 if (!Coord.equal(flipA, flipB)) {
                     return false;
                 }
@@ -126,14 +125,14 @@ pub const Board = struct {
         }
 
         fn flipRow(move: *Move, board: Board, offSet: Coord) !void {
-            const originalLength = move.flips.length;
+            const originalLength = move.flips.len;
             var currentPosition = move.position;
             var cell: i8 = 0;
             var numFlips: i8 = 0;
             while (true) {
                 if (!stepIsLegal(currentPosition, offSet)) {
                     // Failed to find a complete row, so undo the flipping.
-                    try move.flips.shrink(originalLength);
+                    try move.flips.resize(originalLength);
                     return;
                 }
 
@@ -148,12 +147,12 @@ pub const Board = struct {
                     }
 
                     // Failed to find a complete row, so undo the flipping.
-                    try move.flips.shrink(originalLength);
+                    try move.flips.resize(originalLength);
                     return;
                 }
 
                 // Flip pieces optimistically.
-                try move.flips.push(currentPosition);
+                try move.flips.append(currentPosition);
                 numFlips += 1;
             }
         }
@@ -171,7 +170,8 @@ pub const Board = struct {
             var move = Move{
                 .position = position,
                 .player = player,
-                .flips = FlipList.init(),
+                // Can't fail with zero size.
+                .flips = FlipList.init(0) catch unreachable,
             };
 
             // Try flipping in every direction.
@@ -181,17 +181,18 @@ pub const Board = struct {
             }
 
             // If a row is found in any direction, this move is legal.
-            return if (move.flips.length > 0) move else null;
+            return if (move.flips.len > 0) move else null;
         }
     };
 
-    pub const MovesList = StaticList(64, Board.Move);
+    pub const MovesList = std.BoundedArray(Board.Move, 64);
 
     pub fn getLegalMoves(
         board: Board,
         player: Player,
     ) MovesList {
-        var legalMoves = MovesList.init();
+        // Can't fail with zero len.
+        var legalMoves = MovesList.init(0) catch unreachable;
 
         // Loop through all squares to find legal moves and add them to the list.
         for (0..64) |i| {
@@ -199,7 +200,7 @@ pub const Board = struct {
             const move = Move.init(board, position, player);
             if (move) |validMove| {
                 // Shoud never fail since the capacity is the same as the board size.
-                legalMoves.push(validMove) catch unreachable;
+                legalMoves.append(validMove) catch unreachable;
             }
         }
 
@@ -210,7 +211,7 @@ pub const Board = struct {
         const lastPlayer = board.player;
 
         board.cells[@intCast(move.position.toIndex())] = move.player;
-        for (move.flips.getSlice()) |position| {
+        for (move.flips.slice()) |position| {
             board.cells[@intCast(position.toIndex())] = move.player;
         }
 
@@ -219,12 +220,12 @@ pub const Board = struct {
         board.legalMoves = board.getLegalMoves(board.player);
 
         // If the opponent can't make a move, the turn goes back to the player.
-        if (board.legalMoves.length < 1) {
+        if (board.legalMoves.len < 1) {
             board.player = -board.player;
             board.legalMoves = board.getLegalMoves(board.player);
 
             // If neither player can move, the game is over.
-            if (board.legalMoves.length < 1) {
+            if (board.legalMoves.len < 1) {
                 board.gameOver = true;
             }
         }
@@ -234,7 +235,7 @@ pub const Board = struct {
 
     fn undoMove(board: *Board, move: Move, lastPlayer: Player) void {
         board.cells[@intCast(move.position.toIndex())] = 0;
-        for (move.flips.getSlice()) |position| {
+        for (move.flips.slice()) |position| {
             board.cells[@intCast(position.toIndex())] = -move.player;
         }
         board.player = lastPlayer;
@@ -299,7 +300,7 @@ pub const Board = struct {
 
         if (depth > 0) {
             var maxScore: i32 = std.math.minInt(i32);
-            for (board.legalMoves.getSlice()) |innerMove| {
+            for (board.legalMoves.slice()) |innerMove| {
                 const score = board.evaluateMove(innerMove, depth - 1);
                 if (score > maxScore) {
                     maxScore = score;
@@ -314,36 +315,36 @@ pub const Board = struct {
         const legalMovesOpponent = board.getLegalMoves(-move.player);
 
         return board.heuristicScore(move.player) +
-            @as(i32, @intCast(legalMovesPlayer.length)) -
-            @as(i32, @intCast(legalMovesOpponent.length));
+            @as(i32, @intCast(legalMovesPlayer.len)) -
+            @as(i32, @intCast(legalMovesOpponent.len));
     }
 
     pub fn getBestMove(
         board: *Board,
         prng: *std.rand.Random,
     ) !?Board.Move {
-        if (board.legalMoves.length == 0) {
+        if (board.legalMoves.len == 0) {
             return null;
         }
 
         var bestScore: i32 = std.math.minInt(i32);
-        var bestMoves = MovesList.init();
+        var bestMoves = MovesList.init(0) catch unreachable;
 
-        for (board.legalMoves.getSlice()) |move| {
+        for (board.legalMoves.slice()) |move| {
             const score = board.evaluateMove(move, 3);
 
             if (score == bestScore) {
-                try bestMoves.push(move);
+                try bestMoves.append(move);
             }
 
             if (score > bestScore) {
                 bestScore = score;
-                try bestMoves.shrink(0);
-                try bestMoves.push(move);
+                try bestMoves.resize(0);
+                try bestMoves.append(move);
             }
         }
 
-        return bestMoves.items[prng.uintLessThan(usize, bestMoves.length)];
+        return bestMoves.buffer[prng.uintLessThan(usize, bestMoves.len)];
     }
 };
 
@@ -378,15 +379,15 @@ test "flipRow" {
         1,
     ));
 
-    try expect(1 == move.flips.length);
-    try expect(Coord.equal(move.flips.items[0], Coord{ .x = 3, .y = 3 }));
+    try expect(1 == move.flips.len);
+    try expect(Coord.equal(move.flips.buffer[0], Coord{ .x = 3, .y = 3 }));
 }
 
 test "board equal" {
     var a = Board.init();
     var b = Board.init();
     var c = Board.init();
-    _ = c.doMove(c.legalMoves.items[0]);
+    _ = c.doMove(c.legalMoves.buffer[0]);
 
     try expect(Board.equal(&a, &b));
     try expect(!Board.equal(&a, &c));
@@ -397,11 +398,11 @@ test "getLegalMoves" {
 
     const moves = board.getLegalMoves(1);
 
-    try expectEqual(@as(usize, 4), moves.length);
-    try expect(Coord.equal(moves.items[0].position, Coord{ .x = 3, .y = 2 }));
-    try expect(Coord.equal(moves.items[1].position, Coord{ .x = 2, .y = 3 }));
-    try expect(Coord.equal(moves.items[2].position, Coord{ .x = 5, .y = 4 }));
-    try expect(Coord.equal(moves.items[3].position, Coord{ .x = 4, .y = 5 }));
+    try expectEqual(@as(usize, 4), moves.len);
+    try expect(Coord.equal(moves.buffer[0].position, Coord{ .x = 3, .y = 2 }));
+    try expect(Coord.equal(moves.buffer[1].position, Coord{ .x = 2, .y = 3 }));
+    try expect(Coord.equal(moves.buffer[2].position, Coord{ .x = 5, .y = 4 }));
+    try expect(Coord.equal(moves.buffer[3].position, Coord{ .x = 4, .y = 5 }));
 }
 
 test "doMove" {
@@ -435,10 +436,10 @@ test "undoMove" {
 test "undoMove twice" {
     var board = Board.init();
 
-    const move = board.legalMoves.items[0];
+    const move = board.legalMoves.buffer[0];
     const lastPlayer = board.doMove(move);
 
-    const move2 = board.legalMoves.items[0];
+    const move2 = board.legalMoves.buffer[0];
     const lastPlayer2 = board.doMove(move2);
 
     board.undoMove(move2, lastPlayer2);
@@ -520,19 +521,19 @@ test "legal moves" {
         0, 0, 0,  0,  0,  0, 0, 0,
     }, 1);
 
-    try expectEqual(@as(usize, 2), board.legalMoves.length);
-    try expectEqual(Coord{ .x = 4, .y = 2 }, board.legalMoves.items[0].position);
-    try expectEqual(@as(Player, 1), board.legalMoves.items[0].player);
-    try expectEqual(@as(usize, 2), board.legalMoves.items[0].flips.length);
-    try expectEqual(Coord{ .x = 3, .y = 2 }, board.legalMoves.items[0].flips.items[0]);
-    try expectEqual(Coord{ .x = 4, .y = 3 }, board.legalMoves.items[0].flips.items[1]);
+    try expectEqual(@as(usize, 2), board.legalMoves.len);
+    try expectEqual(Coord{ .x = 4, .y = 2 }, board.legalMoves.buffer[0].position);
+    try expectEqual(@as(Player, 1), board.legalMoves.buffer[0].player);
+    try expectEqual(@as(usize, 2), board.legalMoves.buffer[0].flips.len);
+    try expectEqual(Coord{ .x = 3, .y = 2 }, board.legalMoves.buffer[0].flips.buffer[0]);
+    try expectEqual(Coord{ .x = 4, .y = 3 }, board.legalMoves.buffer[0].flips.buffer[1]);
 
-    try expectEqual(Coord{ .x = 2, .y = 4 }, board.legalMoves.items[1].position);
-    try expectEqual(@as(Player, 1), board.legalMoves.items[1].player);
-    try expectEqual(@as(Player, 1), board.legalMoves.items[1].player);
-    try expectEqual(@as(usize, 2), board.legalMoves.items[1].flips.length);
-    try expectEqual(Coord{ .x = 2, .y = 3 }, board.legalMoves.items[1].flips.items[0]);
-    try expectEqual(Coord{ .x = 3, .y = 4 }, board.legalMoves.items[1].flips.items[1]);
+    try expectEqual(Coord{ .x = 2, .y = 4 }, board.legalMoves.buffer[1].position);
+    try expectEqual(@as(Player, 1), board.legalMoves.buffer[1].player);
+    try expectEqual(@as(Player, 1), board.legalMoves.buffer[1].player);
+    try expectEqual(@as(usize, 2), board.legalMoves.buffer[1].flips.len);
+    try expectEqual(Coord{ .x = 2, .y = 3 }, board.legalMoves.buffer[1].flips.buffer[0]);
+    try expectEqual(Coord{ .x = 3, .y = 4 }, board.legalMoves.buffer[1].flips.buffer[1]);
 }
 
 test "skip player" {
@@ -548,19 +549,19 @@ test "skip player" {
     }, 1);
 
     try expectEqual(@as(Player, 1), board.player);
-    try expectEqual(@as(usize, 2), board.legalMoves.length);
+    try expectEqual(@as(usize, 2), board.legalMoves.len);
 
-    const move1 = board.legalMoves.items[0];
+    const move1 = board.legalMoves.buffer[0];
     const undo1 = board.doMove(move1);
 
     try expectEqual(@as(Player, 1), board.player);
-    try expectEqual(@as(usize, 1), board.legalMoves.length);
+    try expectEqual(@as(usize, 1), board.legalMoves.len);
 
-    const move2 = board.legalMoves.items[0];
+    const move2 = board.legalMoves.buffer[0];
     const undo2 = board.doMove(move2);
 
     try expectEqual(true, board.gameOver);
-    try expectEqual(@as(usize, 0), board.legalMoves.length);
+    try expectEqual(@as(usize, 0), board.legalMoves.len);
 
     board.undoMove(move2, undo2);
     board.undoMove(move1, undo1);

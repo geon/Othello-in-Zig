@@ -5,7 +5,6 @@ const Coord = @import("coord.zig").Coord;
 const std = @import("std");
 const forceNotNull = @import("force-not-null.zig").forceNotNull;
 const Client = @import("client.zig").Client;
-const StaticList = @import("static-list.zig").StaticList;
 const allPairs = @import("all-pairs.zig").allPairs;
 
 fn compareStrings(_: void, lhs: []const u8, rhs: []const u8) bool {
@@ -54,13 +53,13 @@ pub fn main() !void {
         defer clientB.deinit();
 
         const numMatches = 100;
-        var scores = StaticList(numMatches, i32).init();
+        var scores = try std.BoundedArray(i32, numMatches).init(0);
 
         for (0..numMatches) |_| {
             var board = Board.init();
             while (true) {
                 if (board.gameOver) {
-                    try scores.push(board.pieceBalance(1));
+                    try scores.append(board.pieceBalance(1));
                     std.debug.print(".", .{});
                     break;
                 }
@@ -71,12 +70,12 @@ pub fn main() !void {
         std.debug.print("\n", .{});
 
         var sumScore: f32 = 0;
-        for (scores.getSlice()) |score| {
+        for (scores.slice()) |score| {
             sumScore += @floatFromInt(score);
         }
         const averageScore = sumScore / numMatches;
         var sumSquaredDeviation: f32 = 0;
-        for (scores.items[0..scores.length]) |score| {
+        for (scores.buffer[0..scores.len]) |score| {
             sumSquaredDeviation += std.math.pow(f32, @as(f32, @floatFromInt(score)) - averageScore, 2);
         }
         const standardDeviation = std.math.sqrt(sumSquaredDeviation / numMatches);

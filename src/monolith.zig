@@ -12,7 +12,7 @@ pub fn main() !void {
     var prng = prngImplementation.random();
 
     var board = Board.init();
-    var markedPosition: Coord = board.legalMoves.items[1].position;
+    var markedPosition: Coord = board.legalMoves.buffer[1].position;
 
     while (true) {
         ui.printBoard(board, markedPosition);
@@ -30,8 +30,8 @@ pub fn main() !void {
 
             if (move) |validMove| {
                 _ = board.doMove(validMove);
-                if (board.legalMoves.length > 0) {
-                    markedPosition = board.legalMoves.items[0].position;
+                if (board.legalMoves.len > 0) {
+                    markedPosition = board.legalMoves.buffer[0].position;
                 }
             } else {
                 break;
